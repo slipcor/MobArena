@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MobArena Config Converter</title>
+        <style type="text/css">
+            @font-face { font-family: Cabin; src: url('Cabin-Regular.otf'); }
+            body {
+                color: #000000;
+                background: #E3E6E6;
+                font-family: Cabin;
+                text-align: center;
+            }
+            textarea {
+                width: 600pt;
+                height: 200pt;
+            }
+            button {
+                width: 600pt;
+                height: 50pt;
+                font-size: 18pt;
+            }
+            h2 {
+                padding-top: 10pt;
+                padding-bottom: 0pt;
+                font-size: 18pt;
+            }
+        </style>
+        <script>
+            function convert() {
+                // Grab the properties string
+                var prop = document.getElementById("old_config").value;
+                if (prop.length == 0) {
+                    alert("WHAT THE FUCK?!");
+                    return;
+                }
+
+                // Split into lines
+                var lines = prop.split("\n");
+
+                // Regexes for testing
+                var re_new_block = new RegExp("^      (spawnpoints|containers):.*$");
+                var re_new_sp    = new RegExp("^        [a-z0-9]*: [0-9].*$");
+                var re_old_block = new RegExp("^            (spawnpoints|containers):.*$");
+                var re_old_sp    = new RegExp("^                [a-z0-9]*: .*$");
+
+                // Booleans for checking if we have entered a spawnpoints block
+                var in_block = false;
+                var in_old_block = false;
+                var in_new_block = false;
+
+                for (var i = 0; i < lines.length; i++) {
+                    // If we're not in a block already...
+                    if (!in_block) {
+                        // ...check if we're entering one
+                        if (re_new_block.test(lines[i])) {
+                            in_block = true;
+                            in_new_block = true;
+                            in_old_block = false;
+                        } else if (re_old_block.test(lines[i])) {
+                            in_block = true;
+                            in_new_block = false;
+                            in_old_block = true;
+                        }
+                        // Either way, continue to the next line
+                        continue;
+                    }
+
+                    /* In this block of code, we determine what kind of
+                     * indentation level we need. However, if the current
+                     * line does not match a spawnpoint/container node,
+                     * we have to nudge the value of i down by one to
+                     * make sure that the code ABOVE this block is run
+                     * when we continue, and since i will be incremented,
+                     * it will be the same value as it is "right now" in
+                     * the next iteration. */
+                    var indent = "";
+                    if (in_new_block) {
+                        if (!re_new_sp.test(lines[i])) {
+                            i--;
+                            in_block = false;
+                            continue;
+                        }
+                        indent = "        ";
+                    } else if (in_old_block) {
+                        if (!re_old_sp.test(lines[i])) {
+                            i--;
+                            in_block = false;
+                            continue;
+                        }
+                        indent = "                ";
+                    }
+
+                    // Find the colon and grab the value
+                    var colon = lines[i].indexOf(":");
+                    var val = lines[i].substring(colon + 2);
+
+                    // Extract the parts and build the key
+                    var parts = val.split(",");
+                    var x = parts[0].split(".")[0];
+                    var y = parts[1].split(".")[0];
+                    var z = parts[2].split(".")[0];
+                    var key = x + "," + y + "," + z;
+
+                    // Replace the array entry
+                    lines[i] = indent + key + ": " + val;
+                }
+
+                // Insert into the yml textarea
+                document.getElementById("new_config").value = lines.join("\n");
+            }
+        </script>
+    </head>
+    <body>
+        <h1>MobArena Config Converter</h1>
+        <p>Copy and paste your config.yml file into the box below, then click Convert!</p>
+
+        <h2>Old config.yml</h2>
+        <textarea id="old_config"></textarea>
+
+        <br/>
+        <br/>
+        <button onclick="convert()">Convert</button>
+
+        <h2>New config.yml</h2>
+        <textarea id="new_config"></textarea>
+    </body>
+</html>

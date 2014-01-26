@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MobArena Announcements Converter</title>
+        <style type="text/css">
+            @font-face { font-family: Cabin; src: url('Cabin-Regular.otf'); }
+            body {
+                color: #000000;
+                background: #E3E6E6;
+                font-family: Cabin;
+                text-align: center;
+            }
+            textarea {
+                width: 600pt;
+                height: 200pt;
+            }
+            button {
+                width: 600pt;
+                height: 50pt;
+                font-size: 18pt;
+            }
+            h2 {
+                padding-top: 10pt;
+                padding-bottom: 0pt;
+                font-size: 18pt;
+            }
+        </style>
+        <script>
+            function convert() {
+                // Grab the properties string
+                var prop = document.getElementById("prop").value;
+                if (prop.length == 0) {
+                    alert("WHAT THE FUCK?!");
+                    return;
+                }
+
+                // Split into lines and iterate each one
+                var lines = prop.split("\n");
+                for (var i = 0; i < lines.length; i++) {
+                    var equals = lines[i].indexOf("=");
+                    var key = lines[i].substring(0, equals);
+                    var val = lines[i].substring(equals + 1);
+
+                    // Check for pipes
+                    var pipe = val.indexOf("|");
+                    if (pipe >= 0) {
+                        val = val.substring(0, pipe);
+                    }
+
+                    // Lowercase, underscore => hyphen, equals => colon
+                    key = key.replace(/_/g,"-").toLowerCase();
+                    if (key != "") {
+                        // Replace the array entry
+                        lines[i] = key + ": " + val;
+                    }
+                }
+
+                // Insert into the yml textarea
+                document.getElementById("yml").value = lines.join("\n");
+            }
+        </script>
+    </head>
+    <body>
+        <h1>MobArena Announcements Converter</h1>
+        <p>Copy and paste your announcements.properties file into the box below, then click Convert!</p>
+
+        <h2>announcements.properties</h2>
+        <textarea id="prop"></textarea>
+
+        <br/>
+        <br/>
+        <button onclick="convert()">Convert</button>
+
+        <h2>announcements.yml</h2>
+        <textarea id="yml"></textarea>
+    </body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>MobArena Mount Configurator</title>
+        <style type="text/css">
+            @font-face { font-family: Cabin; src: url('Cabin-Regular.otf'); }
+            body {
+                color: #000000;
+                background: #E3E6E6;
+                font-family: Cabin;
+                text-align: center;
+            }
+            textarea {
+                width: 600pt;
+                height: 200pt;
+            }
+            button {
+                width: 600pt;
+                height: 50pt;
+                font-size: 18pt;
+            }
+            h2 {
+                padding-top: 10pt;
+                padding-bottom: 0pt;
+                font-size: 18pt;
+            }
+            #configuration-wrapper {
+                text-align: center;
+            }
+            #configuration {
+                display: inline-block;
+                vertical-align: middle;
+                text-align: left;
+            }
+            #configuration ul {
+                list-style: none;
+            }
+        </style>
+        <script>
+            function recalculate() {
+                var bitstring;
+
+                var variants = document.getElementsByName('variant');
+                for (var i = 0; i < variants.length; i++) {
+                    if (variants[i].checked) {
+                        bitstring = variants[i].value;
+                        break;
+                    }
+                }
+
+                var barding = document.getElementsByName('barding');
+                for (var i = 0; i < barding.length; i++) {
+                    if (barding[i].checked) {
+                        bitstring = barding[i].value + bitstring;
+                        break;
+                    }
+                }
+
+                var decimal = 0;
+                var rev = reverse(bitstring);
+
+                decimal += (rev.charAt(0) == 0) ? 0 : 1;
+                decimal += (rev.charAt(1) == 0) ? 0 : 2;
+                decimal += (rev.charAt(2) == 0) ? 0 : 4;
+                decimal += (rev.charAt(3) == 0) ? 0 : 8;
+                decimal += (rev.charAt(4) == 0) ? 0 : 16;
+
+                //document.getElementById('base2').innerHTML = bitstring;
+                document.getElementById('base10').innerHTML = decimal;
+            }
+
+            function reverse(str) {
+                return str.split("").reverse().join("");
+            }
+        </script>
+    </head>
+    <body onLoad="recalculate()">
+        <h1>MobArena Mount Configurator</h1>
+        <p>Choose the desired mount variant and barding</p>
+
+        <div id="configuration-wrapper">
+            <div id="configuration">
+                <ul>
+                    <li><input type="radio" name="variant" onclick="recalculate()" value="001" checked="checked">Horse</input><li/>
+                    <li><input type="radio" name="variant" onclick="recalculate()" value="010">Donkey</input><li/>
+                    <li><input type="radio" name="variant" onclick="recalculate()" value="011">Mule</input><li/>
+                    <li><input type="radio" name="variant" onclick="recalculate()" value="100">Skeleton</input><li/>
+                    <li><input type="radio" name="variant" onclick="recalculate()" value="101">Undead</input></li>
+                </ul>
+            </div>
+            <div id="configuration">
+                <ul>
+                    <li><input type="radio" name="barding" onclick="recalculate()" value="00" checked="checked">None</input><li/>
+                    <li><input type="radio" name="barding" onclick="recalculate()" value="01">Iron</input><li/>
+                    <li><input type="radio" name="barding" onclick="recalculate()" value="10">Gold</input><li/>
+                    <li><input type="radio" name="barding" onclick="recalculate()" value="11">Diamond</input><li/>
+                </ul>
+            </div>
+        </div>
+
+        <h2>Results</h2>
+
+        <p>The item stack amount for the hay bale is:</p>
+        <b><span id="base10"></span></b>
+
+        <!--
+        <p>The bitstring for the configuration is:</p>
+        <b><span id="base2"></span></b>
+        -->
+    </body>
+</html>
