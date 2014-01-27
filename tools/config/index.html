@@ -26,6 +26,100 @@
             }
         </style>
         <script>
+            function getIndentLevel(lines) {
+                var indent = "";
+                for (var i = 0; i < lines.length; i++) {
+                    var j = 0;
+                    while (lines[i].charAt(j) == ' ') {
+                        j++;
+                    }
+                    if (j > 0) {
+                        for (var k = 0; k < j; k++) {
+                            indent = indent + " ";
+                        }
+                        return indent;
+                    }
+                }
+                return null;
+            }
+
+            function getSpawnpointsMap(indent, lines) {
+                var in_waves  = false;
+                var in_arenas = false;
+                var arena = "";
+
+                // arenas:
+                // [  ]arena1:
+                // [  ][  ]waves:
+                // [  ][  ][  ]recurrent:
+                // [  ][  ][  ][  ]def1:
+                // [  ][  ][  ][  ][  ]spawnpoints:
+                var re_arenas = new RegExp("^arenas:[\\s]*$");
+                var re_arena  = new RegExp("^" + indent + "[\\S]+:[\\s]*$");
+                var re_waves  = new RegExp("^" + indent + indent + "waves:[\\s]*$");
+                var re_node   = new RegExp("^" + indent + indent + indent + indent + indent + "spawnpoints:.*$");
+
+                // To check if we fall outside of the 'waves' block
+                var waves_level = indent.length * 2;
+
+                // Every arena has a map of old spawnpoint names to coord-names
+                var map = {};
+
+                for (var i = 0; i < lines.length; i++) {
+                    // Skip all lines until we enter the 'arenas' block
+                    if (!in_arenas) {
+                        if (re_arenas.test(lines[i])) {
+                            in_arenas = true;
+                        }
+                        continue;
+                    }
+
+                    // In case of odd ordering, ignore lines after 'arenas'
+                    if (lines[i].charAt(0) != ' ') {
+                        in_arenas = false;
+                        continue;
+                    }
+
+                    // If we're in an arena-node, remember the name!
+                    if (re_arena.test(lines[i])) {
+                        var colon = lines[i].indexOf(':');
+                        arena = lines[i].substring(0, colon).trim();
+                        continue;
+                    }
+
+                    // Then skip all lines until we enter the 'waves' block
+                    if (!in_waves) {
+                        if (re_waves.test(lines[i])) {
+                            in_waves = true;
+                        }
+                        continue;
+                    }
+
+                    // And if we exit the 'waves' block, start skipping again
+                    if (lines[i].charAt(waves_level) != ' ') {
+                        in_waves = false;
+                        continue;
+                    }
+
+                    // We are in a 'waves' block, so look for 'spawnpoints'
+                    if (re_node.test(lines[i])) {
+                        var colon = lines[i].indexOf(':');
+                        var value = lines[i].substring(colon + 2);
+
+                        var parts = value.split(',');
+                        for (var j = 0; j < parts.length; j++) {
+                            // Lazily initialize the arena's map of spawnpoints
+                            if (map[arena] == undefined) {
+                                map[arena] = {};
+                            }
+                            map[arena][parts[j].trim()] = null;
+                        }
+                    }
+                }
+                return map;
+
+            }
+
             function convert() {
                 // Grab the properties string
                 var prop = document.getElementById("old_config").value;
@@ -37,62 +131,75 @@
                 // Split into lines
                 var lines = prop.split("\n");
 
+                // The indent level of this specific config-file
+                var indent = getIndentLevel(lines);
+
+                // The map of arenas to maps of (used) spawnpoints
+                var map = getSpawnpointsMap(indent, lines);
+
                 // Regexes for testing
-                var re_new_block = new RegExp("^      (spawnpoints|containers):.*$");
-                var re_new_sp    = new RegExp("^        [a-z0-9]*: [0-9].*$");
-                var re_old_block = new RegExp("^            (spawnpoints|containers):.*$");
-                var re_old_sp    = new RegExp("^                [a-z0-9]*: .*$");
+                var re_arenas = new RegExp("^arenas:[\\s]*$");
+                var re_arena  = new RegExp("^" + indent + "[\\S]+:[\\s]*$");
+                var re_block  = new RegExp("^" + indent + indent + indent + "(spawnpoints|containers):.*$");
+                var re_spawn  = new RegExp("^" + indent + indent + indent + indent + "[\\S]+: .+$");
 
-                // Booleans for checking if we have entered a spawnpoints block
-                var in_block = false;
-                var in_old_block = false;
-                var in_new_block = false;
+                // Booleans for checks
+                var in_arenas = false;
+                var in_block  = false;
 
+                // To check if we fall outside a block
+                var block_level = indent.length * 3;
+
+                // Current arena name
+                var arena  = "";
+
+                // Translation loop
                 for (var i = 0; i < lines.length; i++) {
-                    // If we're not in a block already...
-                    if (!in_block) {
-                        // ...check if we're entering one
-                        if (re_new_block.test(lines[i])) {
-                            in_block = true;
-                            in_new_block = true;
-                            in_old_block = false;
-                        } else if (re_old_block.test(lines[i])) {
-                            in_block = true;
-                            in_new_block = false;
-                            in_old_block = true;
+                    // Skip all lines until we enter the 'arenas' block
+                    if (!in_arenas) {
+                        if (re_arenas.test(lines[i])) {
+                            in_arenas = true;
                         }
-                        // Either way, continue to the next line
                         continue;
                     }
 
-                    /* In this block of code, we determine what kind of
-                     * indentation level we need. However, if the current
-                     * line does not match a spawnpoint/container node,
-                     * we have to nudge the value of i down by one to
-                     * make sure that the code ABOVE this block is run
-                     * when we continue, and since i will be incremented,
-                     * it will be the same value as it is "right now" in
-                     * the next iteration. */
-                    var indent = "";
-                    if (in_new_block) {
-                        if (!re_new_sp.test(lines[i])) {
-                            i--;
-                            in_block = false;
-                            continue;
-                        }
-                        indent = "        ";
-                    } else if (in_old_block) {
-                        if (!re_old_sp.test(lines[i])) {
-                            i--;
-                            in_block = false;
-                            continue;
-                        }
-                        indent = "                ";
+                    // In case of odd ordering, ignore lines after 'arenas'
+                    if (lines[i].charAt(0) != ' ') {
+                        in_arenas = false;
+                        continue;
                     }
 
-                    // Find the colon and grab the value
+                    // If we're in an arena-node, remember the name!
+                    if (re_arena.test(lines[i])) {
+                        var colon = lines[i].indexOf(':');
+                        arena = lines[i].substring(0, colon).trim();
+                        continue;
+                    }
+
+                    // Then skip all lines until we enter the 'spawnpoints' block
+                    if (!in_block) {
+                        if (re_block.test(lines[i])) {
+                            in_block = true;
+                        }
+                        continue;
+                    }
+
+                    // And if we exit the 'spawnpoints' block, start skipping again
+                    if (lines[i].charAt(block_level) != ' ') {
+                        in_block = false;
+                        continue;
+                    }
+
+                    // Safeguard
+                    if (!re_spawn.test(lines[i])) {
+                        alert("WHAT THE FUCK?!");
+                        continue;
+                    }
+
+                    // Find the colon and grab the name and value
                     var colon = lines[i].indexOf(":");
-                    var val = lines[i].substring(colon + 2);
+                    var name  = lines[i].substring(0, colon).trim();
+                    var val   = lines[i].substring(colon + 2);
 
                     // Extract the parts and build the key
                     var parts = val.split(",");
@@ -102,7 +209,88 @@
                     var key = x + "," + y + "," + z;
 
                     // Replace the array entry
-                    lines[i] = indent + key + ": " + val;
+                    lines[i] = indent + indent + indent + indent + key + ": " + val;
+
+                    // And create the mapping if necessary
+                    if (map[arena] != undefined) {
+                        if (map[arena][name] == null) {
+                            map[arena][name] = key;
+                        }
+                    }
+                }
+
+                // Reset old variables
+                in_arenas = false;
+                in_block  = false;
+                arena  = "";
+
+                // Declare new ones
+                var in_waves  = false;
+                var sp_indent = indent + indent + indent + indent + indent;
+                var re_waves  = new RegExp("^" + indent + indent + "waves:[\\s]*$");
+                var re_node   = new RegExp("^" + sp_indent + "spawnpoints:.*$");
+                var waves_level = indent.length * 2;
+
+                /* Post-translation loop - this is where we replace all
+                 * instances of the old spawnpoint names with the newly
+                 * mapped names. */
+                for (var i = 0; i < lines.length; i++) {
+                    // Skip all lines until we enter the 'arenas' block
+                    if (!in_arenas) {
+                        if (re_arenas.test(lines[i])) {
+                            in_arenas = true;
+                        }
+                        continue;
+                    }
+
+                    // In case of odd ordering, ignore lines after 'arenas'
+                    if (lines[i].charAt(0) != ' ') {
+                        in_arenas = false;
+                        continue;
+                    }
+
+                    // If we're in an arena-node, remember the name!
+                    if (re_arena.test(lines[i])) {
+                        var colon = lines[i].indexOf(':');
+                        arena = lines[i].substring(0, colon).trim();
+                        continue;
+                    }
+
+                    // Then skip all lines until we enter the 'waves' block
+                    if (!in_waves) {
+                        if (re_waves.test(lines[i])) {
+                            in_waves = true;
+                        }
+                        continue;
+                    }
+
+                    // And if we exit the 'waves' block, start skipping again
+                    if (lines[i].charAt(waves_level) != ' ') {
+                        in_waves = false;
+                        continue;
+                    }
+
+                    // We are in a 'waves' block, so look for 'spawnpoints'
+                    if (re_node.test(lines[i])) {
+                        // Grab the value
+                        var colon = lines[i].indexOf(":");
+                        var val   = lines[i].substring(colon + 2);
+
+                        // Split by comma to get all the spawnpoints
+                        var parts = val.split(",");
+
+                        // Build the value from each spawnpoint
+                        val = "";
+                        for (var j = 0; j < parts.length; j++) {
+                            val = val + "; " + map[arena][parts[j].trim()];
+                        }
+
+                        // Cut off the first semicolon and space
+                        val = val.substring(2);
+
+                        // Then replace the line
+                        lines[i] = sp_indent + "spawnpoints: " + val;
+                    }
                 }
 
                 // Insert into the yml textarea
@@ -111,7 +299,7 @@
         </script>
     </head>
     <body>
-        <h1>MobArena Config Converter</h1>
+        <h1>MobArena Config Converter v1.1</h1>
         <p>Copy and paste your config.yml file into the box below, then click Convert!</p>
 
         <h2>Old config.yml</h2>
