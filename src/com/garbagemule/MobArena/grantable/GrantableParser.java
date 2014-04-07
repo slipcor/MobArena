@@ -7,7 +7,7 @@ public class GrantableParser {
     private int index;
 
     public GrantableParser(String input) {
-        this.input = input;
+        this.input = input.trim();
         this.index = 0;
     }
 
@@ -16,9 +16,43 @@ public class GrantableParser {
     }
 
     public Grantable next() {
-        // If we have no next element, throw
+        // If we have no next element, throw an exception
         if (!hasNext()) {
             throw new NoSuchElementException("No more Grantables in input string");
+        }
+
+        // Otherwise, find the first non-space
+        while (input.charAt(index) == ' ') {
+            index++;
+        }
+
+        // Close parenthesis is an error
+        if (input.charAt(index) == ')') {
+            throw new IllegalArgumentException("Unmatched close parenthesis");
+        }
+
+        // Open parenthesis means GrantableGroup
+        if (input.charAt(index) == '(') {
+            // Find the close parenthesis
+            int start = index;
+            int end   = index + 1;
+            while (input.charAt(end) != ')') {
+                end++;
+                if (end == input.length()) {
+                    throw new IllegalArgumentException("Unmatched start parenthesis");
+                }
+            }
+
+            // Advance the index past the next comma
+            index = input.indexOf(',', end);
+            if (index == -1) {
+                index = input.length();
+            }
+            index++;
+
+            // Grab the substring, then parse the group
+            String sub = input.substring(start, end);
+            return GrantableGroup.fromString(sub);
         }
 
         // Grab start and end pointers
@@ -39,7 +73,7 @@ public class GrantableParser {
             throw new IllegalArgumentException("The empty string is not a valid Grantable");
         }
 
-        // Then parse the
+        // Then parse the Grantable
         if (s.startsWith("$")) return Currency.fromString(s);
         if (s.startsWith("#")) return Permission.fromString(s);
         if (s.startsWith("@")) return Effect.fromString(s);
