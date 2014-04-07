@@ -71,4 +71,9 @@ public class BukkitItem implements Grantable {
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "BukkitItem[" + stack + "]";
+    }
 }

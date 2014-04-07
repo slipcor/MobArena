@@ -10,6 +10,7 @@ import org.bukkit.material.MaterialData;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -114,6 +115,30 @@ public class Item implements Grantable {
             }
         }
         return stack;
+    }
+
+    @Override
+    public String toString() {
+        String result = "Item[id=" + id + ", amount=" + amount + ", data=" + data;
+        if (enchantments != null) {
+            StringBuilder buffy = new StringBuilder(", enchants={");
+            Iterator<Entry<String,Integer>> iter = enchantments.entrySet().iterator();
+
+            // First item needs no comma
+            Entry<String,Integer> current;
+            if (iter.hasNext()) {
+                current = iter.next();
+                buffy.append(current.getKey()).append(":").append(current.getValue());
+            }
+
+            // But the rest do
+            while (iter.hasNext()) {
+                current = iter.next();
+                buffy.append(", ").append(current.getKey()).append(":").append(current.getValue());
+            }
+            result += buffy.append("}");
+        }
+        return result + "]";
     }
 
     /**

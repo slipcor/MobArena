@@ -53,6 +53,11 @@ public class Effect implements Grantable {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "Effect[type=" + type + ", amp=" + amplifier + ", duration=" + duration + "]";
+    }
+
     /**
      * Convert a String into an Effect.
      * <p>

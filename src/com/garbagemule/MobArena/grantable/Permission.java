@@ -29,6 +29,11 @@ public class Permission implements Grantable {
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
+    @Override
+    public String toString() {
+        return "Permission[" + permission + "]";
+    }
+
     /**
      * Convert a String into a Permission.
      * <p>

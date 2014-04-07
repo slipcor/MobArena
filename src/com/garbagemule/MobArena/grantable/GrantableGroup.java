@@ -52,6 +52,26 @@ public class GrantableGroup implements Grantable {
         elements.add(element);
     }
 
+    @Override
+    public String toString() {
+        // Prep the builder and iterator
+        StringBuilder buffy = new StringBuilder("GrantableGroup[{");
+        Iterator<Grantable> iter = elements.iterator();
+
+        // First element should have no comma
+        if (iter.hasNext()) {
+            buffy.append(iter.next());
+        }
+
+        // But the rest should
+        while (iter.hasNext()) {
+            buffy.append(", ").append(iter.next());
+        }
+
+        // Append the end brace and return
+        return buffy.append("}]").toString();
+    }
+
     public static GrantableGroup fromString(String string) {
         // Trim off the start parenthesis, if it exists
         if (string.startsWith("(")) {

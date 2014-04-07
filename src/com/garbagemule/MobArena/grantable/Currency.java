@@ -43,6 +43,11 @@ public class Currency implements Grantable {
         return eco != null && eco.has(player.getName(), value);
     }
 
+    @Override
+    public String toString() {
+        return "Currency[$" + value + "]";
+    }
+
     /**
      * Convert a String into a Currency.
      * <p>
