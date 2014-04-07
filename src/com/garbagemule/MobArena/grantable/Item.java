@@ -158,25 +158,25 @@ public class Item implements Grantable {
      * <p>
      * This method is the main item parser of MobArena, and it is specified by
      * the following BNF ({@code EMPTY} is the empty string, {@code SPACE} is
-     * the space character, {@code ID} is an item ID, and {@code NAME} is ):
+     * a space, {@code COLON} is a colon, and {@code NUMBER} is an integer):
      * <pre>
      *     # Non-terminals
-     *     item ::= id_or_name opt_amount_data opt_enchantments
+     *     item             ::=  id_or_name opt_amount_data opt_enchantments
      *
-     *     id_or_name       ::= ITEM_ID | ITEM_NAME
+     *     id_or_name       ::=  ITEM_ID | ITEM_NAME
      *
-     *     opt_amount_data  ::= EMPTY | amount | data_amount
-     *     amount           ::= COLON NUMBER
-     *     data_amount      ::= COLON NUMBER COLON NUMBER
+     *     opt_amount_data  ::=  EMPTY | amount | data_amount
+     *     amount           ::=  COLON NUMBER
+     *     data_amount      ::=  COLON NUMBER COLON NUMBER
      *
-     *     opt_enchantments ::= EMPTY | SPACE enchantments
-     *     enchantments     ::= ench | ench SEMICOLON enchantments
-     *     ench             ::= ENCH_ID COLON NUMBER
+     *     opt_enchantments ::=  EMPTY | SPACE enchantments
+     *     enchantments     ::=  ench | ench SEMICOLON enchantments
+     *     ench             ::=  ENCH_ID COLON NUMBER
      *
      *     # Literals:
-     *     ITEM_ID    ::= an item ID
-     *     ITEM_NAME  ::= an item name according to {@link org.bukkit.Material}
-     *     ENCH_ID    ::= an enchantment ID
+     *     ITEM_ID          ::=  an item ID
+     *     ITEM_NAME        ::=  an item name according to {@link org.bukkit.Material}
+     *     ENCH_ID          ::=  an enchantment ID
      * </pre>
      *
      * @param string the string to convert
