@@ -20,22 +20,20 @@ public class GrantableGroup implements Grantable {
 
     @Override
     public boolean grant(Player player) {
+        boolean result = true;
         for (Grantable element : elements) {
-            if (!element.grant(player)) {
-                return false;
-            }
+            result &= element.grant(player);
         }
-        return true;
+        return result;
     }
 
     @Override
     public boolean take(Player player) {
+        boolean result = true;
         for (Grantable element : elements) {
-            if (!element.take(player)) {
-                return false;
-            }
+            result &= element.take(player);
         }
-        return true;
+        return result;
     }
 
     @Override
