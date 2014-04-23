@@ -5,10 +5,25 @@ import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Effect represents a potion effect that can be applied to a player.
  */
 public class Effect implements Grantable {
+    /**
+     * Parser pattern. Examples:
+     * <ul>
+     *     <li>@speed:1:50</li>
+     *     <li>eff:speed:1:50</li>
+     *     <li>effect:speed:1:50</li>
+     * </ul>
+     * The first matcher group is the prefix, and the second group is the
+     * effect string
+     */
+    public static final Pattern PATTERN = Pattern.compile("(\\@|(?:eff(?:ect)?):)([^\\s]+)");
+
     private int amplifier;
     private int duration;
     private PotionEffectType type;
@@ -71,9 +86,15 @@ public class Effect implements Grantable {
      * @throws IllegalArgumentException if the string is invalid
      */
     public static Effect fromString(String string) {
-        // Cut off the at sign if it exists
-        if (string.startsWith("@")) {
-            string = string.substring(1);
+        // Isolate the actual effect string
+        Matcher matcher = PATTERN.matcher(string);
+        if (matcher.find()) {
+            string = matcher.group(2);
+        }
+
+        // Guard against the empty string
+        if (string.length() == 0) {
+            throw new IllegalArgumentException("The empty string is not a valid effect");
         }
 
         // Then split by colon
@@ -94,6 +115,7 @@ public class Effect implements Grantable {
                 // We'll throw an exception in the next line
             }
         } else {
+            // Casing is handled by Bukkit
             type = PotionEffectType.getByName(parts[0]);
         }
         if (type == null) {

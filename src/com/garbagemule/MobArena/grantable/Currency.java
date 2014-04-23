@@ -3,12 +3,27 @@ package com.garbagemule.MobArena.grantable;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.entity.Player;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Currency represents a Grantable in the form of economy money from various
  * economy plugins. The value of the currency is added to the player's balance
  * according to the protocol of Vault.
  */
 public class Currency implements Grantable {
+    /**
+     * Parser pattern. Examples:
+     * <ul>
+     *     <li>$3.14</li>
+     *     <li>eco:3.14</li>
+     *     <li>economy:3.14</li>
+     * </ul>
+     * The first matcher group is the prefix, and the second group is the
+     * currency string
+     */
+    public static final Pattern PATTERN = Pattern.compile("(\\$|(?:eco(?:nomy)?):)([^\\s]+)");
+
     /**
      * The Vault-Economy instance, initialized by MobArena
      */
@@ -60,9 +75,15 @@ public class Currency implements Grantable {
      * @throws IllegalArgumentException if the string is invalid
      */
     public static Currency fromString(String string) {
-        // Cut off the dollar sign if it exists
-        if (string.startsWith("$")) {
-            string = string.substring(1);
+        // Isolate the actual currency string
+        Matcher matcher = PATTERN.matcher(string);
+        if (matcher.find()) {
+            string = matcher.group(2);
+        }
+
+        // Guard against the empty string
+        if (string.length() == 0) {
+            throw new IllegalArgumentException("The empty string is not a valid currency");
         }
 
         // Convert to double and return
@@ -70,7 +91,7 @@ public class Currency implements Grantable {
             double value = Double.parseDouble(string);
             return new Currency(value);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("'" + string + "' is not a valid currency value");
+            throw new IllegalArgumentException("'" + string + "' is not a valid currency");
         }
     }
 

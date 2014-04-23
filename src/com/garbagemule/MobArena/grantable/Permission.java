@@ -2,7 +2,23 @@ package com.garbagemule.MobArena.grantable;
 
 import org.bukkit.entity.Player;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Permission implements Grantable {
+    /**
+     * Parser pattern. Examples:
+     * <ul>
+     *     <li>#some.permission</li>
+     *     <li>p:some.permission</li>
+     *     <li>perm:some.permission</li>
+     *     <li>permission:some.permission</li>
+     * </ul>
+     * The first matcher group is the prefix, and the second group is the
+     * permission string
+     */
+    public static final Pattern PATTERN = Pattern.compile("(#|p(?:erm(?:ission)?)?:)([^\\s]+)");
+
     /**
      * The Vault-Permission instance, initialized by MobArena
      */
@@ -16,17 +32,17 @@ public class Permission implements Grantable {
 
     @Override
     public boolean grant(Player player) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return perm != null && perm.playerAdd(player, permission);
     }
 
     @Override
     public boolean take(Player player) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return perm != null && perm.playerRemove(player, permission);
     }
 
     @Override
     public boolean has(Player player) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        return perm != null && perm.playerHas(player, permission);
     }
 
     @Override
@@ -46,9 +62,10 @@ public class Permission implements Grantable {
      * @throws IllegalArgumentException if the permission string is invalid
      */
     public static Permission fromString(String string) {
-        // Cut off the hashtag if it exists
-        if (string.startsWith("#")) {
-            string = string.substring(1);
+        // Isolate the actual permission string
+        Matcher matcher = PATTERN.matcher(string);
+        if (matcher.find()) {
+            string = matcher.group(2);
         }
 
         // Guard against the empty string
@@ -63,7 +80,7 @@ public class Permission implements Grantable {
      *
      * @param perm a Vault-Permission instance
      */
-    public static void setEconomy(net.milkbowl.vault.permission.Permission perm) {
+    public static void setPerm(net.milkbowl.vault.permission.Permission perm) {
         Permission.perm = perm;
     }
 }

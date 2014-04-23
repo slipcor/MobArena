@@ -71,12 +71,10 @@ public class GrantableGroup implements Grantable {
     }
 
     public static GrantableGroup fromString(String string) {
-        // Trim off the start parenthesis, if it exists
+        // Trim off the parentheses, if they exist
         if (string.startsWith("(")) {
             string = string.substring(1).trim();
         }
-
-        // As well as the end parenthesis
         if (string.endsWith(")")) {
             string = string.substring(0, string.length() - 1).trim();
         }
