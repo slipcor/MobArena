@@ -33,7 +33,10 @@ public class Effect implements Grantable {
         this.duration = duration;
 
         for (PotionEffectType type : PotionEffectType.values()) {
-            if (type.getName().equals(name)) {
+            // Apparently null is an actual value, so guard against it
+            if (type == null) continue;
+
+            if (name.equals(type.getName())) {
                 this.type = type;
                 return;
             }
