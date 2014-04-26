@@ -12,18 +12,6 @@ import java.util.regex.Pattern;
  * Effect represents a potion effect that can be applied to a player.
  */
 public class Effect implements Grantable {
-    /**
-     * Parser pattern. Examples:
-     * <ul>
-     *     <li>@speed:1:50</li>
-     *     <li>eff:speed:1:50</li>
-     *     <li>effect:speed:1:50</li>
-     * </ul>
-     * The first matcher group is the prefix, and the second group is the
-     * effect string
-     */
-    public static final Pattern PATTERN = Pattern.compile("(\\@|(?:eff(?:ect)?):)([^\\s]+)");
-
     private int amplifier;
     private int duration;
     private PotionEffectType type;
@@ -78,23 +66,14 @@ public class Effect implements Grantable {
 
     /**
      * Convert a String into an Effect.
-     * <p>
-     * The format is simply {@code +<name>:<amp>:<duration>}, where
-     * {@code <name>} is an effect name, {@code <amp>} is an amplifier,
-     * i.e. "level", and {@code <duration>} is the duration in seconds.
      *
      * @param string the string to convert
      * @return the resulting Effect
      * @throws NullPointerException if the string is null
      * @throws IllegalArgumentException if the string is invalid
      */
+    @GrantableInfo(symbol = '#', prefix = "eff(ect)")
     public static Effect fromString(String string) {
-        // Isolate the actual effect string
-        Matcher matcher = PATTERN.matcher(string);
-        if (matcher.find()) {
-            string = matcher.group(2);
-        }
-
         // Guard against the empty string
         if (string.length() == 0) {
             throw new IllegalArgumentException("The empty string is not a valid effect");

@@ -13,18 +13,6 @@ import java.util.regex.Pattern;
  */
 public class Currency implements Grantable {
     /**
-     * Parser pattern. Examples:
-     * <ul>
-     *     <li>$3.14</li>
-     *     <li>eco:3.14</li>
-     *     <li>economy:3.14</li>
-     * </ul>
-     * The first matcher group is the prefix, and the second group is the
-     * currency string
-     */
-    public static final Pattern PATTERN = Pattern.compile("(\\$|(?:eco(?:nomy)?):)([^\\s]+)");
-
-    /**
      * The Vault-Economy instance, initialized by MobArena
      */
     private static net.milkbowl.vault.economy.Economy eco = null;
@@ -74,13 +62,8 @@ public class Currency implements Grantable {
      * @throws NullPointerException if the string is null
      * @throws IllegalArgumentException if the string is invalid
      */
+    @GrantableInfo(symbol = '$', prefix = "eco(nomy)")
     public static Currency fromString(String string) {
-        // Isolate the actual currency string
-        Matcher matcher = PATTERN.matcher(string);
-        if (matcher.find()) {
-            string = matcher.group(2);
-        }
-
         // Guard against the empty string
         if (string.length() == 0) {
             throw new IllegalArgumentException("The empty string is not a valid currency");

@@ -7,19 +7,6 @@ import java.util.regex.Pattern;
 
 public class Permission implements Grantable {
     /**
-     * Parser pattern. Examples:
-     * <ul>
-     *     <li>#some.permission</li>
-     *     <li>p:some.permission</li>
-     *     <li>perm:some.permission</li>
-     *     <li>permission:some.permission</li>
-     * </ul>
-     * The first matcher group is the prefix, and the second group is the
-     * permission string
-     */
-    public static final Pattern PATTERN = Pattern.compile("(#|p(?:erm(?:ission)?)?:)([^\\s]+)");
-
-    /**
      * The Vault-Permission instance, initialized by MobArena
      */
     private static net.milkbowl.vault.permission.Permission perm = null;
@@ -52,22 +39,14 @@ public class Permission implements Grantable {
 
     /**
      * Convert a String into a Permission.
-     * <p>
-     * The format is simply {@code #<perm>}, where {@code <perm>} is a
-     * permission string, e.g. {@code mobarena.use.leave}
      *
      * @param string the string to convert
      * @return the resulting Permission
      * @throws NullPointerException if the string is null
      * @throws IllegalArgumentException if the permission string is invalid
      */
+    @GrantableInfo(symbol = '%', prefix = "perm(ission)")
     public static Permission fromString(String string) {
-        // Isolate the actual permission string
-        Matcher matcher = PATTERN.matcher(string);
-        if (matcher.find()) {
-            string = matcher.group(2);
-        }
-
         // Guard against the empty string
         if (string.length() == 0) {
             throw new IllegalArgumentException("The empty string is not a valid permission");
