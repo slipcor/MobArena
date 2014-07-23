@@ -257,46 +257,54 @@ public class SetupCommand implements Command, Listener {
             ItemStack tool = p.getItemInHand();
             if (!isTool(tool)) return;
 
+            String name = tool.getItemMeta().getDisplayName();
+            if (name.equals(AREG_NAME)) {
+                if (!arena(event)) return;
+            } else if (name.equals(LREG_NAME)) {
+                if (!lobby(event)) return;
+            } else if (name.equals(WARPS_NAME)) {
+                if (!warps(event)) return;
+            } else if (name.equals(SPAWNS_NAME)) {
+                if (!spawns(event)) return;
+            } else if (name.equals(CHESTS_NAME)) {
+                if (!chests(event)) return;
+            }
+
             event.setUseItemInHand(Event.Result.DENY);
             event.setCancelled(true);
 
-            String name = tool.getItemMeta().getDisplayName();
-            if (name.equals(AREG_NAME)) {
-                arena(event);
-            } else if (name.equals(LREG_NAME)) {
-                lobby(event);
-            } else if (name.equals(WARPS_NAME)) {
-                warps(event);
-            } else if (name.equals(SPAWNS_NAME)) {
-                spawns(event);
-            } else if (name.equals(CHESTS_NAME)) {
-                chests(event);
-            }
             player.sendRawMessage(getPromptText(null));
         }
 
-        private void arena(PlayerInteractEvent event) {
-            if (event.hasBlock()) {
-                Location loc = event.getClickedBlock().getLocation();
-                region(event.getAction(), "p1", "p2", loc);
+        private boolean arena(PlayerInteractEvent event) {
+            if (!event.hasBlock()) {
+                return false;
             }
+
+            Location loc = event.getClickedBlock().getLocation();
+            region(event.getAction(), "p1", "p2", loc);
+            return true;
         }
 
-        private void lobby(PlayerInteractEvent event) {
-            if (event.hasBlock()) {
-                Location loc = event.getClickedBlock().getLocation();
-                region(event.getAction(), "l1", "l2", loc);
+        private boolean lobby(PlayerInteractEvent event) {
+            if (!event.hasBlock()) {
+                return false;
             }
+
+            Location loc = event.getClickedBlock().getLocation();
+            region(event.getAction(), "l1", "l2", loc);
+            return true;
         }
 
-        private void region(Action action, String lower, String upper, Location loc) {
+        private boolean region(Action action, String lower, String upper, Location loc) {
             switch (action) {
-                case LEFT_CLICK_BLOCK:  regions(lower, loc); break;
-                case RIGHT_CLICK_BLOCK: regions(upper, loc); break;
+                case LEFT_CLICK_BLOCK:  regions(lower, loc); return true;
+                case RIGHT_CLICK_BLOCK: regions(upper, loc); return true;
             }
+            return false;
         }
 
-        private void warps(PlayerInteractEvent event) {
+        private boolean warps(PlayerInteractEvent event) {
             switch (event.getAction()) {
                 case LEFT_CLICK_BLOCK:
                     Location loc = event.getClickedBlock().getLocation();
@@ -305,7 +313,7 @@ public class SetupCommand implements Command, Listener {
                     fix(loc);
                     String warp = warpArray[warpIndex];
                     warps(warp, loc);
-                    break;
+                    return true;
                 case RIGHT_CLICK_BLOCK:
                 case RIGHT_CLICK_AIR:
                     warpIndex++;
@@ -313,31 +321,36 @@ public class SetupCommand implements Command, Listener {
                         warpIndex = 0;
                     }
                     next = formatYellow("Current warp: %s", warpArray[warpIndex]);
-                    break;
+                    return true;
             }
+            return false;
         }
 
-        private void spawns(PlayerInteractEvent event) {
+        private boolean spawns(PlayerInteractEvent event) {
             if (!event.hasBlock()) {
-                return;
+                return false;
             }
+
             Location l = event.getClickedBlock().getLocation();
             fix(l);
             switch (event.getAction()) {
-                case LEFT_CLICK_BLOCK:  spawns(l, true);  break;
-                case RIGHT_CLICK_BLOCK: spawns(l, false); break;
+                case LEFT_CLICK_BLOCK:  spawns(l, true);  return true;
+                case RIGHT_CLICK_BLOCK: spawns(l, false); return true;
             }
+            return false;
         }
 
-        private void chests(PlayerInteractEvent event) {
+        private boolean chests(PlayerInteractEvent event) {
             if (!event.hasBlock()) {
-                return;
+                return false;
             }
+
             Block b = event.getClickedBlock();
             switch (event.getAction()) {
-                case LEFT_CLICK_BLOCK:  chests(b, true);  break;
-                case RIGHT_CLICK_BLOCK: chests(b, false); break;
+                case LEFT_CLICK_BLOCK:  chests(b, true);  return true;
+                case RIGHT_CLICK_BLOCK: chests(b, false); return true;
             }
+            return false;
         }
 
         private void fix(Location loc) {
@@ -574,7 +587,23 @@ public class SetupCommand implements Command, Listener {
             String toShow = s.split(" ")[1].trim();
 
             // Regions
-            if (toShow.equalsIgnoreCase("ar")) {
+            if (toShow.equalsIgnoreCase("r") || toShow.equalsIgnoreCase("regions")) {
+                if (region.isDefined()) {
+                    region.showRegion(player);
+                    if (region.isLobbyDefined()) {
+                        region.showLobbyRegion(player);
+                        next = formatYellow("Showing both %s.", "regions");
+                    } else {
+                        next = formatYellow("Showing %s (lobby region not defined).", "arena region");
+                    }
+                } else if (region.isLobbyDefined()) {
+                    region.showLobbyRegion(player);
+                    next = formatYellow("Showing %s (arena region not defined).", "lobby region");
+                } else {
+                    next = "No regions have been defined yet.";
+                }
+                return this;
+            } else if (toShow.equalsIgnoreCase("ar")) {
                 if (region.isDefined()) {
                     next = formatYellow("Showing %s.", "arena region");
                     region.showRegion(player);
@@ -662,7 +691,7 @@ public class SetupCommand implements Command, Listener {
             buffy.append("\nUsage: &eshow <thing>");
 
             buffy.append("\n\n&r&7Possible things to show:");
-            buffy.append("\n&r&7 regions: &rar&7 (arena region) or &rlr&7 (lobby region)");
+            buffy.append("\n&r&7 regions: &rar&7 (arena region) or &rlr&7 (lobby region) or &rr&7 (both)");
             buffy.append("\n&r&7 warps: &rarena&7, &rlobby&7, &rspec&7, or &rexit");
             buffy.append("\n&r&7 points: &rspawns&7 or &rchests&7");
 
@@ -735,7 +764,7 @@ public class SetupCommand implements Command, Listener {
         private static final String MISSING  = "miss(ing)?";
         private static final String EXPAND   = "exp(and)? (a|l)r [1-9][0-9]* (up|down|out)";
         private static final String EXPHELP  = "exp(and)?";
-        private static final String SHOW     = "show (ar|lr|arena|lobby|spec(tator)?|exit|sp(awn(point)?s?)?|c((hest(s)?)?|on(tainer(s)?)?))";
+        private static final String SHOW     = "show (r|ar|lr|arena|lobby|spec(tator)?|exit|sp(awn(point)?s?)?|c((hest(s)?)?|on(tainer(s)?)?))";
         private static final String SHOWHELP = "show";
         private static final String DONE     = "done|quit|stop|end";
     }

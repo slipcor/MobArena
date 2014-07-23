@@ -56,6 +56,38 @@ public class ScoreboardManager {
         Score score = kills.getScore(player);
         score.setScore(score.getScore() + 1);
     }
+
+    /**
+     * Signal a player death.
+     * @param player a player
+     */
+    void death(Player player) {
+        String name = ChatColor.GRAY + player.getName();
+        if (name.length() > 16) {
+            name = name.substring(0, 15);
+        }
+
+        int value = kills.getScore(player).getScore();
+        scoreboard.resetScores(player);
+
+        /* In case the player has no kills, they will not show up on the
+         * scoreboard unless they are first given a different score.
+         * If zero kills, the score is set to 8 (which looks a bit like
+         * 0), and then in the next tick, it's set to 0. Otherwise, the
+         * score is just set to its current value.
+         */
+        final Score fake = kills.getScore(Bukkit.getOfflinePlayer(name));
+        if (value == 0) {
+            fake.setScore(8);
+            arena.scheduleTask(new Runnable() {
+                public void run() {
+                    fake.setScore(0);
+                }
+            }, 1);
+        } else {
+            fake.setScore(value);
+        }
+    }
     
     /**
      * Update the scoreboard to display the given wave number.
@@ -100,6 +132,7 @@ public class ScoreboardManager {
         void addPlayer(Player player) {}
         void removePlayer(Player player) {}
         void addKill(Player player) {}
+        void death(Player player) {}
         void updateWave(int wave) {}
         void initialize() {}
     }

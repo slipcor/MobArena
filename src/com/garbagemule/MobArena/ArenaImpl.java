@@ -622,6 +622,12 @@ public class ArenaImpl implements Arena
     @Override
     public void playerReady(Player p)
     {
+        ArenaPlayerReadyEvent event = new ArenaPlayerReadyEvent(p, this);
+        plugin.getServer().getPluginManager().callEvent(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
         readyPlayers.add(p);
         
         int minPlayers = getMinPlayers();
@@ -666,7 +672,7 @@ public class ArenaImpl implements Arena
 
             // Last lobby player leaving? Stop the timer
             if (lobbyPlayers.size() == 1) {
-                autoStartTimer.stop();
+                startDelayTimer.stop();
             }
         }
         
@@ -841,6 +847,11 @@ public class ArenaImpl implements Arena
 
             // Spawn the horse, set its variant, tame it, etc.
             Horse horse = (Horse) world.spawnEntity(p.getLocation(), EntityType.HORSE);
+            if (MobArena.random.nextInt(20) == 0) {
+                horse.setBaby();
+            } else {
+                horse.setAdult();
+            }
             horse.setVariant(variant);
             horse.setTamed(true);
             horse.setOwner(p);
@@ -1030,7 +1041,8 @@ public class ArenaImpl implements Arena
         PlayerData mp = playerData.remove(p);
         
         // Health must be handled in a certain way because of Heroes
-        setHealth(p, mp.health());
+        // Math.min to guard for ItemLoreStats weirdness
+        setHealth(p, Math.min(p.getMaxHealth(), mp.health()));
         
         // Put out fire.
         Delays.douse(plugin, p, 3);

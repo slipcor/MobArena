@@ -1,10 +1,6 @@
 package com.garbagemule.MobArena;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 import com.garbagemule.MobArena.events.ArenaKillEvent;
 import org.bukkit.ChatColor;
@@ -55,6 +51,7 @@ import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -461,10 +458,12 @@ public class ArenaListener
                 Messenger.announce(arena, event.getDeathMessage());
             }
             event.setDeathMessage(null);
+            arena.getScoreboard().death(player);
             arena.playerDeath(player);
         } else if (arena.inSpec(player)) {
             event.getDrops().clear();
             event.setDroppedExp(0);
+            arena.getScoreboard().death(player);
             arena.playerLeave(player);
         }
     }
@@ -620,7 +619,6 @@ public class ArenaListener
             return;
         }
 
-        // If PvP is disabled and damager is a player, cancel damage
         if (arena.inArena(player)) {
             // Repair armor if necessary
             repairArmor(player);
@@ -678,20 +676,33 @@ public class ArenaListener
             
             if (!pvpEnabled) {
                 event.setCancelled(true);
-                return;
             }
         }
     }
+
+    private static final EnumSet<Material> REPAIRABLE_TYPES = EnumSet.of(
+            // Tools and swords
+            Material.GOLD_AXE,    Material.GOLD_HOE,    Material.GOLD_PICKAXE,    Material.GOLD_SPADE,    Material.GOLD_SWORD,
+            Material.WOOD_AXE,    Material.WOOD_HOE,    Material.WOOD_PICKAXE,    Material.WOOD_SPADE,    Material.WOOD_SWORD,
+            Material.STONE_AXE,   Material.STONE_HOE,   Material.STONE_PICKAXE,   Material.STONE_SPADE,   Material.STONE_SWORD,
+            Material.IRON_AXE,    Material.IRON_HOE,    Material.IRON_PICKAXE,    Material.IRON_SPADE,    Material.IRON_SWORD,
+            Material.DIAMOND_AXE, Material.DIAMOND_HOE, Material.DIAMOND_PICKAXE, Material.DIAMOND_SPADE, Material.DIAMOND_SWORD,
+            // Armor
+            Material.LEATHER_HELMET,   Material.LEATHER_CHESTPLATE,   Material.LEATHER_LEGGINGS,   Material.LEATHER_BOOTS,
+            Material.GOLD_HELMET,      Material.GOLD_CHESTPLATE,      Material.GOLD_LEGGINGS,      Material.GOLD_BOOTS,
+            Material.CHAINMAIL_HELMET, Material.CHAINMAIL_CHESTPLATE, Material.CHAINMAIL_LEGGINGS, Material.CHAINMAIL_BOOTS,
+            Material.IRON_HELMET,      Material.IRON_CHESTPLATE,      Material.IRON_LEGGINGS,      Material.IRON_BOOTS,
+            Material.DIAMOND_HELMET,   Material.DIAMOND_CHESTPLATE,   Material.DIAMOND_LEGGINGS,   Material.DIAMOND_BOOTS,
+            // Misc
+            Material.BOW, Material.FLINT_AND_STEEL, Material.FISHING_ROD, Material.SHEARS, Material.CARROT_STICK
+    );
 
     private void repairWeapon(Player p) {
         ArenaPlayer ap = arena.getArenaPlayer(p);
         if (ap != null) {
             ArenaClass ac = ap.getArenaClass();
             if (ac != null && ac.hasUnbreakableWeapons()) {
-                ItemStack weapon = p.getItemInHand();
-                if (ArenaClass.isWeapon(weapon)) {
-                    weapon.setDurability((short) 0);
-                }
+                repair(p.getItemInHand());
             }
         }
     }
@@ -700,14 +711,16 @@ public class ArenaListener
         ArenaClass ac = arena.getArenaPlayer(p).getArenaClass();
         if (ac != null && ac.hasUnbreakableArmor()) {
             PlayerInventory inv = p.getInventory();
-            ItemStack stack = inv.getHelmet();
-            if (stack != null) stack.setDurability((short) 0);
-            stack = inv.getChestplate();
-            if (stack != null) stack.setDurability((short) 0);
-            stack = inv.getLeggings();
-            if (stack != null) stack.setDurability((short) 0);
-            stack = inv.getBoots();
-            if (stack != null) stack.setDurability((short) 0);
+            repair(inv.getHelmet());
+            repair(inv.getChestplate());
+            repair(inv.getLeggings());
+            repair(inv.getBoots());
+        }
+    }
+
+    private void repair(ItemStack stack) {
+        if (stack != null && REPAIRABLE_TYPES.contains(stack.getType())) {
+            stack.setDurability((short) 0);
         }
     }
 
@@ -763,22 +776,38 @@ public class ArenaListener
     
     public void onPotionSplash(PotionSplashEvent event) {
         ThrownPotion potion = event.getPotion();
-        if (!region.contains(potion.getLocation()) || pvpEnabled) {
+        if (!region.contains(potion.getLocation())) {
             return;
         }
 
-        // If a potion has harmful effects, remove all players.
-        for (PotionEffect effect : potion.getEffects()) {
-            PotionEffectType type = effect.getType();
-            if (type.equals(PotionEffectType.HARM) || type.equals(PotionEffectType.POISON)) {
-                Set<LivingEntity> players = new HashSet<LivingEntity>();
-                for (LivingEntity le : event.getAffectedEntities()) {
-                    if (le instanceof Player) {
-                        players.add(le);
+        if (potion.getShooter() instanceof Player) {
+            // Check for PvP stuff if the shooter is a player
+            if (!pvpEnabled) {
+                // If a potion has harmful effects, remove all players.
+                for (PotionEffect effect : potion.getEffects()) {
+                    PotionEffectType type = effect.getType();
+                    if (type.equals(PotionEffectType.HARM) || type.equals(PotionEffectType.POISON)) {
+                        for (LivingEntity le : event.getAffectedEntities()) {
+                            if (le instanceof Player) {
+                                event.setIntensity(le, 0.0);
+                            }
+                        }
+                        break;
                     }
                 }
-                event.getAffectedEntities().removeAll(players);
-                break;
+            }
+        } else if (!monsterInfight) {
+            // Otherwise, check for monster infighting
+            for (PotionEffect effect : potion.getEffects()) {
+                PotionEffectType type = effect.getType();
+                if (type.equals(PotionEffectType.HARM) || type.equals(PotionEffectType.POISON)) {
+                    for (LivingEntity le : event.getAffectedEntities()) {
+                        if (!(le instanceof Player)) {
+                            event.setIntensity(le, 0.0);
+                        }
+                    }
+                    break;
+                }
             }
         }
     }
@@ -1166,5 +1195,20 @@ public class ArenaListener
         if (arena == null) return;
         
         arena.playerLeave(p);
+    }
+
+    public void onVehicleExit(VehicleExitEvent event) {
+        LivingEntity entity = event.getExited();
+        if (!(entity instanceof Player)) return;
+
+        Player p = (Player) entity;
+        if (!arena.inArena(p)) return;
+
+        Vehicle vehicle = event.getVehicle();
+        if (!(vehicle instanceof Horse)) return;
+
+        if (monsters.hasMount(vehicle)) {
+            event.setCancelled(true);
+        }
     }
 }
