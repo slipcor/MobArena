@@ -59,7 +59,7 @@ public interface Arena
 
     public int getMaxPlayers();
     
-    public List<ItemStack> getEntryFee();
+    public List<Grantable> getEntryFee();
     
     public Set<Map.Entry<Integer, List<Grantable>>> getEveryWaveEntrySet();
 

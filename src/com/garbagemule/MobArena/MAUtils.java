@@ -5,15 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 import com.garbagemule.MobArena.grantable.Grantable;
 import com.garbagemule.MobArena.grantable.GrantableParser;
@@ -25,14 +17,12 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
 import com.garbagemule.MobArena.framework.Arena;
 import com.garbagemule.MobArena.framework.ArenaMaster;
 import com.garbagemule.MobArena.region.ArenaRegion;
 import com.garbagemule.MobArena.util.EntityPosition;
-import com.garbagemule.MobArena.util.ItemParser;
 import com.garbagemule.MobArena.util.TextUtils;
 
 public class MAUtils
@@ -81,7 +71,7 @@ public class MAUtils
             while (parser.hasNext()) {
                 try {
                     list.add(parser.next());
-                } catch (Exception e) {
+                } catch (IllegalArgumentException e) {
                     plugin.getLogger().severe("Error parsing rewards for wave " + wave + " in '" + type + "' rewards for arena " + arena + "\n" + e.getMessage());
                 }
             }
@@ -90,6 +80,24 @@ public class MAUtils
                 continue;
             }
             result.put(wave, list);
+        }
+        return result;
+    }
+
+    public static List<Grantable> getGrantableList(Plugin plugin, String input) {
+        if (input == null || input.equals("")) {
+            return Collections.emptyList();
+        }
+        List<Grantable> result = new ArrayList<Grantable>();
+        GrantableParser parser = new GrantableParser(input);
+        while (parser.hasNext()) {
+            try {
+                result.add(parser.next());
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().severe(e.getMessage());
+            } catch (Exception e) {
+                break;
+            }
         }
         return result;
     }
@@ -200,7 +208,7 @@ public class MAUtils
         }
         
         String separator = " ";
-        StringBuffer buffy = new StringBuffer(name.length());
+        StringBuilder buffy = new StringBuilder(name.length());
         for (String part : parts) {
             buffy.append(toCamelCase(part));
             buffy.append(separator);
