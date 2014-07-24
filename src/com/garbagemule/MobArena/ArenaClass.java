@@ -138,6 +138,14 @@ public class ArenaClass
     public void setArmor(List<ItemStack> armor) {
         this.armor = armor;
     }
+
+    /**
+     * Replace the current effect list with the given list.
+     * @param effects a list of effects
+     */
+    public void setEffects(List<Effect> effects) {
+        this.effects = effects;
+    }
     
     /**
      * Grants all of the class items and armor to the given player.

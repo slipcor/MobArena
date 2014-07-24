@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.garbagemule.MobArena.grantable.Effect;
 import com.garbagemule.MobArena.grantable.Grantable;
 import com.garbagemule.MobArena.grantable.GrantableParser;
+import com.garbagemule.MobArena.grantable.Item;
 import com.garbagemule.MobArena.util.ItemParser;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -290,7 +292,7 @@ public class ArenaMasterImpl implements ArenaMaster
             Messenger.severe("Failed to load class '" + classname + "'.");
             return null;
         }
-        
+
         // Check if weapons and armor for this class should be unbreakable
         boolean weps = section.getBoolean("unbreakable-weapons", true);
         boolean arms = section.getBoolean("unbreakable-armor", true);
@@ -318,28 +320,16 @@ public class ArenaMasterImpl implements ArenaMaster
         }
 
         // Parse the items-node
-        List<String> items = section.getStringList("items");
-        if (items == null || items.isEmpty()) {
-            String str = section.getString("items", "");
-            List<ItemStack> stacks = ItemParser.parseItems(str);
-            arenaClass.setItems(stacks);
-        } else {
-            List<ItemStack> stacks = new ArrayList<ItemStack>();
-            for (String item : items) {
-                ItemStack stack = ItemParser.parseItem(item);
-                if (stack != null) {
-                    stacks.add(stack);
-                }
-            }
-            arenaClass.setItems(stacks);
-        }
+        List<String> list = section.getStringList("items");
+        String string = (list != null && !list.isEmpty()) ? MAUtils.toString(list) : section.getString("items", "");
+        List<ItemStack> stacks = ItemParser.parseItemStacks(string);
+        arenaClass.setItems(stacks);
 
         // And the legacy armor-node
-        String armor = section.getString("armor", "");
-        if (!armor.equals("")) {
-            List<ItemStack> stacks = ItemParser.parseItems(armor);
-            arenaClass.setArmor(stacks);
-        }
+        list = section.getStringList("armor");
+        string = (list != null && !list.isEmpty()) ? MAUtils.toString(list) : section.getString("armor", "");
+        stacks = ItemParser.parseItemStacks(string);
+        arenaClass.setArmor(stacks);
 
         // Get armor strings
         String head  = section.getString("helmet", null);
@@ -348,16 +338,22 @@ public class ArenaMasterImpl implements ArenaMaster
         String feet  = section.getString("boots", null);
 
         // Parse to ItemStacks
-        ItemStack helmet     = ItemParser.parseItem(head);
-        ItemStack chestplate = ItemParser.parseItem(chest);
-        ItemStack leggings   = ItemParser.parseItem(legs);
-        ItemStack boots      = ItemParser.parseItem(feet);
+        ItemStack helmet     = ItemParser.parseItemStack(head);
+        ItemStack chestplate = ItemParser.parseItemStack(chest);
+        ItemStack leggings   = ItemParser.parseItemStack(legs);
+        ItemStack boots      = ItemParser.parseItemStack(feet);
 
         // Set in ArenaClass
         arenaClass.setHelmet(helmet);
         arenaClass.setChestplate(chestplate);
         arenaClass.setLeggings(leggings);
         arenaClass.setBoots(boots);
+
+        // Get effects
+        list = section.getStringList("effects");
+        string = (list != null && !list.isEmpty()) ? MAUtils.toString(list) : section.getString("effects", "");
+        List<Effect> effects = parseEffects(string);
+        arenaClass.setEffects(effects);
 
         // Per-class permissions
         loadClassPermissions(arenaClass, section);
@@ -366,33 +362,6 @@ public class ArenaMasterImpl implements ArenaMaster
         // Register the permission.
         registerPermission("mobarena.classes." + lowercase, PermissionDefault.TRUE).addParent("mobarena.classes", true);
 
-        // Get effects
-        List<String> effectList = section.getStringList("effects");
-        if (effectList == null) {
-            effectList = new ArrayList<String>();
-        }
-        if (effectList.isEmpty()) {
-            String s = section.getString("effects", null);
-            if (s != null && !s.equals("")) {
-                String[] parts = s.split(",");
-                for (String part : parts) {
-                    effectList.add(part.trim());
-                }
-            }
-        }
-        if (!effectList.isEmpty()) {
-            for (String effect : effectList) {
-                GrantableParser parser = new GrantableParser(effect);
-                try {
-                    arenaClass.addEffect(parser.nextEffect());
-                } catch (IllegalArgumentException e) {
-                    plugin.getLogger().severe(e.getMessage());
-                } catch (Exception e) {
-                    break;
-                }
-            }
-        }
-
         // Check for class chests
         Location cc = parseLocation(section, "classchest", null);
         arenaClass.setClassChest(cc);
@@ -400,6 +369,28 @@ public class ArenaMasterImpl implements ArenaMaster
         // Finally add the class to the classes map.
         classes.put(lowercase, arenaClass);
         return arenaClass;
+    }
+
+    private List<Effect> parseEffects(String s) {
+        List<Effect> result = new ArrayList<Effect>();
+        if (s != null && !s.equals("")) {
+            try {
+                GrantableParser parser = new GrantableParser(s);
+                while (parser.hasNext()) {
+                    try {
+                        result.add(parser.nextEffect());
+                    } catch (IllegalArgumentException e) {
+                        Messenger.severe(e.getMessage());
+                    } catch (Exception e) {
+                        Messenger.severe(e.getMessage());
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                Messenger.severe(e.getMessage());
+            }
+        }
+        return result;
     }
 
     private void loadClassPermissions(ArenaClass arenaClass, ConfigurationSection section) {

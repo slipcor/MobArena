@@ -210,7 +210,7 @@ public class WaveParser
         
         // Grab the loot.
         String loot = config.getString("drops");
-        List<ItemStack> stacks = ItemParser.parseItems(loot);
+        List<ItemStack> stacks = ItemParser.parseItemStacks(loot);
         result.setDropList(stacks);
         
         return result;
@@ -400,7 +400,7 @@ public class WaveParser
             Object val = config.get(path + className, null);
             if (val instanceof String) {
                 itemList = (String) val;
-                List<ItemStack> stacks = ItemParser.parseItems(itemList);
+                List<ItemStack> stacks = ItemParser.parseItemStacks(itemList);
                 List<Upgrade> list = new ArrayList<Upgrade>();
                 for (ItemStack stack : stacks) {
                     list.add(new GenericUpgrade(stack));
@@ -415,7 +415,7 @@ public class WaveParser
                 // Items (Generic + Weapons)
                 itemList = classSection.getString("items", null);
                 if (itemList != null) {
-                    for (ItemStack stack : ItemParser.parseItems(itemList)) {
+                    for (ItemStack stack : ItemParser.parseItemStacks(itemList)) {
                         list.add(ArenaClass.isWeapon(stack) ? new WeaponUpgrade(stack) : new GenericUpgrade(stack));
                     }
                 }
@@ -423,7 +423,7 @@ public class WaveParser
                 // Armor
                 itemList = classSection.getString("armor", null);
                 if (itemList != null) {
-                    for (ItemStack stack : ItemParser.parseItems(itemList)) {
+                    for (ItemStack stack : ItemParser.parseItemStacks(itemList)) {
                         list.add(new ArmorUpgrade(stack));
                     }
                 }
