@@ -1,14 +1,12 @@
 package com.garbagemule.MobArena.commands.user;
 
-import com.garbagemule.MobArena.ArenaClass;
-import com.garbagemule.MobArena.ClassLimitManager;
-import com.garbagemule.MobArena.Messenger;
-import com.garbagemule.MobArena.Msg;
+import com.garbagemule.MobArena.*;
 import com.garbagemule.MobArena.commands.Command;
 import com.garbagemule.MobArena.commands.CommandInfo;
 import com.garbagemule.MobArena.commands.Commands;
 import com.garbagemule.MobArena.framework.Arena;
 import com.garbagemule.MobArena.framework.ArenaMaster;
+import com.garbagemule.MobArena.grantable.Grantable;
 import com.garbagemule.MobArena.util.TextUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -16,6 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
 
 @CommandInfo(
     name    = "class",
@@ -75,11 +75,13 @@ public class PickClassCommand implements Command
         }
 
         // Check price, balance, and inform
-        double price = ac.getPrice();
-        if (price > 0D) {
-            if (!am.getPlugin().hasEnough(p, price)) {
-                Messenger.tell(p, Msg.LOBBY_CLASS_TOO_EXPENSIVE, am.getPlugin().economyFormat(price));
-                return true;
+        List<Grantable> price = ac.getPrice();
+        if (!price.isEmpty()) {
+            for (Grantable fee : price) {
+                if (!fee.has(p)) {
+                    Messenger.tell(p, Msg.LOBBY_CLASS_TOO_EXPENSIVE, MAUtils.toString(price));
+                    return true;
+                }
             }
         }
 
@@ -103,8 +105,8 @@ public class PickClassCommand implements Command
                     arena.assignClassGiveInv(p, lowercase, contents);
                     p.getInventory().setContents(contents);
                     Messenger.tell(p, Msg.LOBBY_CLASS_PICKED, TextUtils.camelCase(lowercase));
-                    if (price > 0D) {
-                        Messenger.tell(p, Msg.LOBBY_CLASS_PRICE, am.getPlugin().economyFormat(price));
+                    if (!price.isEmpty()) {
+                        Messenger.tell(p, Msg.LOBBY_CLASS_PRICE, MAUtils.toString(price));
                     }
                     return true;
                 }
@@ -112,8 +114,8 @@ public class PickClassCommand implements Command
             }
             arena.assignClass(p, lowercase);
             Messenger.tell(p, Msg.LOBBY_CLASS_PICKED, TextUtils.camelCase(lowercase));
-            if (price > 0D) {
-                Messenger.tell(p, Msg.LOBBY_CLASS_PRICE, am.getPlugin().economyFormat(price));
+            if (!price.isEmpty()) {
+                Messenger.tell(p, Msg.LOBBY_CLASS_PRICE, MAUtils.toString(price));
             }
         } else {
             arena.addRandomPlayer(p);

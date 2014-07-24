@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import com.garbagemule.MobArena.grantable.Effect;
+import com.garbagemule.MobArena.grantable.Grantable;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,14 +21,14 @@ public class ArenaClass
     private Map<String,Boolean> perms;
     private Map<String,Boolean> lobbyperms;
     private boolean unbreakableWeapons, unbreakableArmor;
-    private double price;
+    private List<Grantable> price;
     private Location classchest;
 
     /**
      * Create a new, empty arena class with the given name.
      * @param name the class name as it appears in the config-file
      */
-    public ArenaClass(String name, double price, boolean unbreakableWeapons, boolean unbreakableArmor) {
+    public ArenaClass(String name, boolean unbreakableWeapons, boolean unbreakableArmor) {
         this.configName    = name;
         this.lowercaseName = name.toLowerCase();
         
@@ -36,11 +37,10 @@ public class ArenaClass
         this.perms = new HashMap<String,Boolean>();
         this.lobbyperms = new HashMap<String,Boolean>();
         this.effects = new ArrayList<Effect>();
+        this.price = new ArrayList<Grantable>();
 
         this.unbreakableWeapons = unbreakableWeapons;
         this.unbreakableArmor = unbreakableArmor;
-
-        this.price = price;
     }
     
     /**
@@ -279,8 +279,12 @@ public class ArenaClass
         return unbreakableArmor;
     }
 
-    public double getPrice() {
+    public List<Grantable> getPrice() {
         return price;
+    }
+
+    public void setPrice(Collection<Grantable> price) {
+        this.price = new ArrayList<Grantable>(price);
     }
     
     /**

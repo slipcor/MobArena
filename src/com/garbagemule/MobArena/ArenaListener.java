@@ -969,11 +969,13 @@ public class ArenaListener
         }
 
         // Check price, balance, and inform
-        double price = newAC.getPrice();
-        if (price > 0D) {
-            if (!plugin.hasEnough(p, price)) {
-                Messenger.tell(p, Msg.LOBBY_CLASS_TOO_EXPENSIVE, plugin.economyFormat(price));
-                return;
+        List<Grantable> price = newAC.getPrice();
+        if (!price.isEmpty()) {
+            for (Grantable fee : price) {
+                if (!fee.has(p)) {
+                    Messenger.tell(p, Msg.LOBBY_CLASS_TOO_EXPENSIVE, MAUtils.toString(price));
+                    return;
+                }
             }
         }
         
@@ -997,7 +999,7 @@ public class ArenaListener
         return true;
     }*/
 
-    private void delayAssignClass(final Player p, final String className, final double price, final Sign sign) {
+    private void delayAssignClass(final Player p, final String className, final List<Grantable> price, final Sign sign) {
         plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin,new Runnable() {
             public void run() {
                 if (!className.equalsIgnoreCase("random")) {
@@ -1046,8 +1048,8 @@ public class ArenaListener
                             arena.assignClassGiveInv(p, className, contents);
                             p.getInventory().setContents(contents);
                             Messenger.tell(p, Msg.LOBBY_CLASS_PICKED, TextUtils.camelCase(className));
-                            if (price > 0D) {
-                                Messenger.tell(p, Msg.LOBBY_CLASS_PRICE,  plugin.economyFormat(price));
+                            if (!price.isEmpty()) {
+                                Messenger.tell(p, Msg.LOBBY_CLASS_PRICE, MAUtils.toString(price));
                             }
                             return;
                         }
@@ -1055,8 +1057,8 @@ public class ArenaListener
                     }
                     arena.assignClass(p, className);
                     Messenger.tell(p, Msg.LOBBY_CLASS_PICKED, TextUtils.camelCase(className));
-                    if (price > 0D) {
-                        Messenger.tell(p, Msg.LOBBY_CLASS_PRICE,  plugin.economyFormat(price));
+                    if (!price.isEmpty()) {
+                        Messenger.tell(p, Msg.LOBBY_CLASS_PRICE, MAUtils.toString(price));
                     }
                 }
                 else {

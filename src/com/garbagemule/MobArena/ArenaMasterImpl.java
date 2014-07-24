@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.garbagemule.MobArena.grantable.Effect;
 import com.garbagemule.MobArena.grantable.Grantable;
 import com.garbagemule.MobArena.grantable.GrantableParser;
+import com.garbagemule.MobArena.util.ItemParser;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -30,7 +30,6 @@ import static com.garbagemule.MobArena.util.config.ConfigUtils.parseLocation;
 import com.garbagemule.MobArena.ArenaClass.ArmorType;
 import com.garbagemule.MobArena.framework.Arena;
 import com.garbagemule.MobArena.framework.ArenaMaster;
-import com.garbagemule.MobArena.util.ItemParser;
 import com.garbagemule.MobArena.util.TextUtils;
 import com.garbagemule.MobArena.util.config.ConfigUtils;
 
@@ -296,21 +295,27 @@ public class ArenaMasterImpl implements ArenaMaster
         boolean weps = section.getBoolean("unbreakable-weapons", true);
         boolean arms = section.getBoolean("unbreakable-armor", true);
 
+        // Create an ArenaClass with the config-file name.
+        ArenaClass arenaClass = new ArenaClass(classname, weps, arms);
+
         // Grab the class price, if any
-        double price = -1D;
         String priceString = section.getString("price", null);
         if (priceString != null) {
-            ItemStack priceItem = ItemParser.parseItem(priceString);
-            if (priceItem != null && priceItem.getTypeId() == MobArena.ECONOMY_MONEY_ID) {
-                price = (priceItem.getAmount() + (priceItem.getDurability() / 100D));
-            } else {
-                Messenger.warning("The price for class '" + classname + "' could not be parsed!");
-                Messenger.warning("- expected e.g. '$10',  found '" + priceString + "'");
+            List<Grantable> price = new ArrayList<Grantable>();
+            GrantableParser parser = new GrantableParser(priceString);
+            while (parser.hasNext()) {
+                try {
+                    price.add(parser.next());
+                } catch (IllegalArgumentException e) {
+                    Messenger.severe(e.getMessage());
+                } catch (Exception e) {
+                    break;
+                }
+            }
+            if (!price.isEmpty()) {
+                arenaClass.setPrice(price);
             }
         }
-
-        // Create an ArenaClass with the config-file name.
-        ArenaClass arenaClass = new ArenaClass(classname, price, weps, arms);
 
         // Parse the items-node
         List<String> items = section.getStringList("items");
