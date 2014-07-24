@@ -48,7 +48,7 @@ public class Currency implements Grantable {
 
     @Override
     public String toString() {
-        return "Currency[$" + value + "]";
+        return eco.format(value);
     }
 
     /**

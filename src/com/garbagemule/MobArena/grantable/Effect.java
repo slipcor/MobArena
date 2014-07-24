@@ -61,7 +61,16 @@ public class Effect implements Grantable {
 
     @Override
     public String toString() {
-        return "Effect[type=" + type + ", amp=" + amplifier + ", duration=" + duration + "]";
+        String level;
+        switch (amplifier + 1) {
+            case 1: level = "I";   break;
+            case 2: level = "II";  break;
+            case 3: level = "III"; break;
+            case 4: level = "IV";  break;
+            case 5: level = "V";   break;
+            default: level = "" + amplifier + 1; break;
+        }
+        return type.getName() + " " + level;
     }
 
     /**

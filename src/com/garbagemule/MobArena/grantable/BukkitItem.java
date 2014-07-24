@@ -3,6 +3,7 @@ package com.garbagemule.MobArena.grantable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Map;
 
@@ -74,6 +75,14 @@ public class BukkitItem implements Grantable {
 
     @Override
     public String toString() {
-        return "BukkitItem[" + stack + "]";
+        String amount = stack.getAmount() == 1 ? "" : " x" + stack.getAmount();
+        if (stack.hasItemMeta()) {
+            ItemMeta meta = stack.getItemMeta();
+            String name = meta.getDisplayName();
+            if (name != null && !name.equals("")) {
+                return name + amount;
+            }
+        }
+        return stack.getType().toString().toLowerCase() + amount;
     }
 }

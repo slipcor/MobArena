@@ -34,7 +34,7 @@ public class Permission implements Grantable {
 
     @Override
     public String toString() {
-        return "Permission[" + permission + "]";
+        return permission;
     }
 
     /**

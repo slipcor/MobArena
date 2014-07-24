@@ -119,26 +119,7 @@ public class Item implements Grantable {
 
     @Override
     public String toString() {
-        String result = "Item[id=" + id + ", amount=" + amount + ", data=" + data;
-        if (enchantments != null) {
-            StringBuilder buffy = new StringBuilder(", enchants={");
-            Iterator<Entry<String,Integer>> iter = enchantments.entrySet().iterator();
-
-            // First item needs no comma
-            Entry<String,Integer> current;
-            if (iter.hasNext()) {
-                current = iter.next();
-                buffy.append(current.getKey()).append(":").append(current.getValue());
-            }
-
-            // But the rest do
-            while (iter.hasNext()) {
-                current = iter.next();
-                buffy.append(", ").append(current.getKey()).append(":").append(current.getValue());
-            }
-            result += buffy.append("}");
-        }
-        return result + "]";
+        return Material.getMaterial(id).toString().toLowerCase() + (amount == 1 ? "" : " x" + amount);
     }
 
     /**

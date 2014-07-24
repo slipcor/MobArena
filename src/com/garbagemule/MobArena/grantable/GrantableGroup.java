@@ -53,7 +53,7 @@ public class GrantableGroup implements Grantable {
     @Override
     public String toString() {
         // Prep the builder and iterator
-        StringBuilder buffy = new StringBuilder("GrantableGroup[{");
+        StringBuilder buffy = new StringBuilder();
         Iterator<Grantable> iter = elements.iterator();
 
         // First element should have no comma
@@ -67,7 +67,7 @@ public class GrantableGroup implements Grantable {
         }
 
         // Append the end brace and return
-        return buffy.append("}]").toString();
+        return buffy.toString();
     }
 
     public static GrantableGroup fromString(String string) {
