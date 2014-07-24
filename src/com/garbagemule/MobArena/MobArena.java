@@ -8,6 +8,7 @@ import java.util.Set;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
+import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -25,6 +26,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.garbagemule.MobArena.commands.CommandHandler;
 import com.garbagemule.MobArena.framework.Arena;
 import com.garbagemule.MobArena.framework.ArenaMaster;
+import com.garbagemule.MobArena.grantable.Currency;
 import com.garbagemule.MobArena.listeners.MAGlobalListener;
 import com.garbagemule.MobArena.listeners.MagicSpellsListener;
 import com.garbagemule.MobArena.metrics.Metrics;
@@ -233,13 +235,21 @@ public class MobArena extends JavaPlugin
         }
         
         ServicesManager manager = this.getServer().getServicesManager();
-        RegisteredServiceProvider<Economy> e = manager.getRegistration(net.milkbowl.vault.economy.Economy.class);
-        
+        RegisteredServiceProvider<Economy> e = manager.getRegistration(Economy.class);
         if (e != null) {
             economy = e.getProvider();
-            Messenger.info("Vault found; economy rewards enabled.");
+            Currency.setEco(economy);
+            Messenger.info("Economy plugin " + economy.getName() + " detected via Vault; economy rewards enabled.");
         } else {
-            Messenger.warning("Vault found, but no economy plugin detected. Economy rewards will not work!");
+            Messenger.warning("No economy plugin detected via Vault; economy rewards will not work!");
+        }
+        RegisteredServiceProvider<Permission> p = manager.getRegistration(Permission.class);
+        if (p != null) {
+            Permission perm = p.getProvider();
+            com.garbagemule.MobArena.grantable.Permission.setPerm(perm);
+            Messenger.info("Permissions plugin " + perm.getName() + " detected via Vault; permission rewards enabled.");
+        } else {
+            Messenger.warning("No permissions plugin detected via Vault; permission rewards will not work.");
         }
     }
     

@@ -3,6 +3,8 @@ package com.garbagemule.MobArena;
 import java.util.*;
 
 import com.garbagemule.MobArena.events.ArenaKillEvent;
+import com.garbagemule.MobArena.grantable.BukkitItem;
+import com.garbagemule.MobArena.grantable.Grantable;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -511,19 +513,10 @@ public class ArenaListener
                 }
                 MABoss boss = monsters.getBoss(damagee);
                 if (boss != null) {
-                    ItemStack reward = boss.getReward();
+                    Grantable reward = boss.getReward();
                     if (reward != null) {
-                        String msg = p.getName() + " killed the boss and won: ";
-                        if (reward.getTypeId() == MobArena.ECONOMY_MONEY_ID) {
-                            plugin.giveMoney(p, reward);
-                            msg += plugin.economyFormat(reward);
-                        } else {
-                            arena.getRewardManager().addReward((Player) damager, reward);
-                            msg += MAUtils.toCamelCase(reward.getType().toString()) + ":" + reward.getAmount();
-                        }
-                        for (Player q : arena.getPlayersInArena()) {
-                            Messenger.tell(q, msg);
-                        }
+                        arena.getRewardManager().addReward((Player) damager, reward);
+                        Messenger.announce(arena, p.getName() + " killed the boss and won: " + reward);
                     }
                 }
             }

@@ -60,9 +60,9 @@ public interface Arena
     
     public List<ItemStack> getEntryFee();
     
-    public Set<Map.Entry<Integer,List<ItemStack>>> getEveryWaveEntrySet();
+    public Set<Map.Entry<Integer, List<com.garbagemule.MobArena.grantable.Grantable>>> getEveryWaveEntrySet();
 
-    public List<ItemStack> getAfterWaveReward(int wave);
+    public List<com.garbagemule.MobArena.grantable.Grantable> getAfterWaveReward(int wave);
     
     public Set<Player> getPlayersInArena();
     

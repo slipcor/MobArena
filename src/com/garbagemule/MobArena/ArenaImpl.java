@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.PriorityBlockingQueue;
 
+import com.garbagemule.MobArena.grantable.Grantable;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
@@ -86,7 +87,7 @@ public class ArenaImpl implements Arena
     private WaveManager   waveManager;
     private MASpawnThread spawnThread;
     private SheepBouncer  sheepBouncer;
-    private Map<Integer,List<ItemStack>> everyWaveMap, afterWaveMap;
+    private Map<Integer,List<Grantable>> everyWaveMap, afterWaveMap;
     
     // Misc
     private ArenaListener eventListener;
@@ -256,12 +257,12 @@ public class ArenaImpl implements Arena
     }
 
     @Override
-    public Set<Map.Entry<Integer,List<ItemStack>>> getEveryWaveEntrySet() {
+    public Set<Entry<Integer, List<Grantable>>> getEveryWaveEntrySet() {
         return everyWaveMap.entrySet();
     }
 
     @Override
-    public List<ItemStack> getAfterWaveReward(int wave) {
+    public List<Grantable> getAfterWaveReward(int wave) {
         return afterWaveMap.get(wave);
     }
 

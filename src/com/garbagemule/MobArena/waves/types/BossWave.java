@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.garbagemule.MobArena.grantable.Grantable;
 import org.bukkit.inventory.ItemStack;
 
 import com.garbagemule.MobArena.Messenger;
@@ -32,7 +33,7 @@ public class BossWave extends AbstractWave
     
     private int abilityInterval;
 
-    private ItemStack reward;
+    private Grantable reward;
     
     public BossWave(MACreature monster) {
         this.monster   = monster;
@@ -113,11 +114,11 @@ public class BossWave extends AbstractWave
         this.abilityAnnounce = abilityAnnounce;
     }
     
-    public ItemStack getReward() {
+    public Grantable getReward() {
         return reward;
     }
 
-    public void setReward(ItemStack reward) {
+    public void setReward(Grantable reward) {
         this.reward = reward;
     }
     

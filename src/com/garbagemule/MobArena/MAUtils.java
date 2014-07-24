@@ -15,6 +15,8 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
 
+import com.garbagemule.MobArena.grantable.Grantable;
+import com.garbagemule.MobArena.grantable.GrantableParser;
 import org.bukkit.block.Sign;
 import org.bukkit.World;
 import org.bukkit.Material;
@@ -50,28 +52,44 @@ public class MAUtils
      * type of wave ("after" or "every") and the config-file. If
      * no keys exist in the config-file, an empty map is returned.
      */    
-    public static Map<Integer,List<ItemStack>> getArenaRewardMap(MobArena plugin, ConfigurationSection config, String arena, String type)
+    public static Map<Integer,List<Grantable>> getArenaRewardMap(MobArena plugin, ConfigurationSection config, String arena, String type)
     {
-        //String arenaPath = "arenas." + arena + ".rewards.waves.";
-        Map<Integer,List<ItemStack>> result = new HashMap<Integer,List<ItemStack>>();
+        Map<Integer,List<Grantable>> result = new HashMap<Integer,List<Grantable>>();
 
         String typePath = "rewards.waves." + type;
         if (!config.contains(typePath)) return result;
-        
-        //Set<String> waves = config.getKeys(arenaPath + type);
+
         Set<String> waves = config.getConfigurationSection(typePath).getKeys(false);
         if (waves == null) return result;
         
-        for (String n : waves)
-        {
-            if (!n.matches("[0-9]+"))
+        for (String n : waves) {
+            if (!n.matches("[0-9]+")) {
                 continue;
-            
-            int wave = Integer.parseInt(n);
+            }
+            int wave;
+            try {
+                wave = Integer.parseInt(n);
+            } catch (NumberFormatException e) {
+                plugin.getLogger().warning("Invalid wave number " + n + " in '" + type + "' rewards for arena " + arena);
+                continue;
+            }
             String path = typePath + "." + wave;
             String rewards = config.getString(path);
-            
-            result.put(wave, ItemParser.parseItems(rewards));
+
+            GrantableParser parser = new GrantableParser(rewards);
+            List<Grantable> list = new ArrayList<Grantable>();
+            while (parser.hasNext()) {
+                try {
+                    list.add(parser.next());
+                } catch (Exception e) {
+                    plugin.getLogger().severe("Error parsing rewards for wave " + wave + " in '" + type + "' rewards for arena " + arena + "\n" + e.getMessage());
+                }
+            }
+            if (list.isEmpty()) {
+                plugin.getLogger().warning("No valid rewards found for wave " + wave + " in '" + type + "' rewards for arena " + arena);
+                continue;
+            }
+            result.put(wave, list);
         }
         return result;
     }
@@ -85,7 +103,7 @@ public class MAUtils
     // ///////////////////////////////////////////////////////////////////// */
     
     /* Helper method for grabbing a random reward */
-    public static ItemStack getRandomReward(List<ItemStack> rewards)
+    public static Grantable getRandomReward(List<Grantable> rewards)
     {
         if (rewards.isEmpty())
             return null;

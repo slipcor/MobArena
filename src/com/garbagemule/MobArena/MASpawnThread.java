@@ -1,10 +1,14 @@
 package com.garbagemule.MobArena;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import com.garbagemule.MobArena.events.ArenaCompleteEvent;
+import com.garbagemule.MobArena.grantable.BukkitItem;
+import com.garbagemule.MobArena.grantable.Currency;
+import com.garbagemule.MobArena.grantable.Grantable;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
@@ -276,15 +280,38 @@ public class MASpawnThread implements Runnable
     }
 
     private void grantRewards(int wave) {
-        for (Map.Entry<Integer, List<ItemStack>> entry : arena.getEveryWaveEntrySet()) {
+        List<Grantable> list = new ArrayList<Grantable>();
+        for (Map.Entry<Integer, List<Grantable>> entry : arena.getEveryWaveEntrySet()) {
             if (wave % entry.getKey() == 0) {
-                addReward(entry.getValue());
+                Grantable reward = MAUtils.getRandomReward(entry.getValue());
+                if (reward != null) {
+                    list.add(reward);
+                }
             }
         }
 
-        List<ItemStack> after = arena.getAfterWaveReward(wave);
+        List<Grantable> after = arena.getAfterWaveReward(wave);
         if (after != null) {
-            addReward(after);
+            Grantable reward = MAUtils.getRandomReward(after);
+            if (reward != null) {
+                list.add(reward);
+            }
+        }
+        if (list.isEmpty()) {
+            return;
+        }
+        StringBuilder buffy = new StringBuilder();
+        Iterator<Grantable> iter = list.iterator();
+        buffy.append(iter.next());
+        while (iter.hasNext()) {
+            buffy.append(", ").append(iter.next());
+        }
+        String rewardString = buffy.toString();
+        for (Player p : arena.getPlayersInArena()) {
+            for (Grantable reward : list) {
+                rewardManager.addReward(p, reward);
+            }
+            Messenger.tell(p, Msg.WAVE_REWARD, rewardString);
         }
     }
 
@@ -306,31 +333,5 @@ public class MASpawnThread implements Runnable
 
     public int getPlayerCount() {
         return playerCount;
-    }
-
-    /**
-     * Rewards all players with an item from the input String.
-     */
-    private void addReward(List<ItemStack> rewards) {
-        for (Player p : arena.getPlayersInArena()) {
-            ItemStack reward = MAUtils.getRandomReward(rewards);
-            rewardManager.addReward(p, reward);
-
-            if (reward == null) {
-                Messenger.tell(p, "ERROR! Problem with rewards. Notify server host!");
-                Messenger.warning("Could not add null reward. Please check the config-file!");
-            }
-            else if (reward.getTypeId() == MobArena.ECONOMY_MONEY_ID) {
-                if (plugin.giveMoney(p, reward)) { // Money already awarded here, not needed at end of match as well
-                    Messenger.tell(p, Msg.WAVE_REWARD, plugin.economyFormat(reward));
-                }
-                else {
-                    Messenger.warning("Tried to add money, but no economy plugin detected!");
-                }
-            }
-            else {
-                Messenger.tell(p, Msg.WAVE_REWARD, MAUtils.toCamelCase(reward.getType().toString()) + ":" + reward.getAmount());
-            }
-        }
     }
 }
