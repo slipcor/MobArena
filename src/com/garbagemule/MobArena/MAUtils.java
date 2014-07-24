@@ -217,74 +217,21 @@ public class MAUtils
     public static String toCamelCase(String name) {
         return name.substring(0, 1).toUpperCase() + name.substring(1).toLowerCase();
     }
-    
-    /**
-     * Turn a list into a space-separated string-representation of the list.
-     */    
-    public static <E> String listToString(Collection<E> list, boolean none, MobArena plugin)
-    {
-        if (list == null || list.isEmpty()) {
-            return (none ? Msg.MISC_NONE.toString() : "");
+
+    public static <E> String toString(Collection<E> c, String sep) {
+        if (c == null) {
+            return "";
         }
-        
-        StringBuffer buffy = new StringBuffer();
-        int trimLength = 0;
-        
-        E type = list.iterator().next();
-        if (type instanceof Player) {
-            for (E e : list) {
-                buffy.append(((Player) e).getName());
-                buffy.append(" ");
-            }
+        StringBuilder buffy = new StringBuilder();
+        Iterator<E> iter = c.iterator();
+        buffy.append(iter.next());
+        while (iter.hasNext()) {
+            buffy.append(sep).append(iter.next());
         }
-        else if (type instanceof ItemStack) {
-            trimLength = 2;
-            ItemStack stack;
-            for (E e : list) {
-                stack = (ItemStack) e;
-                if (stack.getTypeId() == MobArena.ECONOMY_MONEY_ID) {
-                    String formatted = plugin.economyFormat(stack);
-                    if (formatted != null) {
-                        buffy.append(formatted);
-                        buffy.append(", ");
-                    }
-                    else {
-                        Messenger.warning("Tried to do some money stuff, but no economy plugin was detected!");
-                        return buffy.toString();
-                    }
-                    continue;
-                }
-                
-                buffy.append(stack.getType().toString().toLowerCase());
-                buffy.append(":");
-                buffy.append(stack.getAmount());
-                buffy.append(", ");
-            }
-        }
-        else {
-            for (E e : list) {
-                buffy.append(e.toString());
-                buffy.append(" ");
-            }
-        }
-        return buffy.toString().substring(0, buffy.length() - trimLength);
+        return buffy.toString();
     }
-    public static <E> String listToString(Collection<E> list, JavaPlugin plugin) { return listToString(list, true, (MobArena) plugin); }
-    
-    /**
-     * Returns a String-list version of a comma-separated list.
-     */
-    public static List<String> stringToList(String list)
-    {
-        List<String> result = new LinkedList<String>();
-        if (list == null) return result;
-        
-        String[] parts = list.trim().split(",");
-        
-        for (String part : parts)
-            result.add(part.trim());
-        
-        return result;
+    public static <E> String toString(Collection<E> c) {
+        return toString(c, ", ");
     }
     
     /**

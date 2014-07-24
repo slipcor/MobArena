@@ -43,8 +43,12 @@ public class NotReadyCommand implements Command
             return false;
         }
         
-        String list = MAUtils.listToString(arena.getNonreadyPlayers(), am.getPlugin());
-        Messenger.tell(sender, Msg.MISC_LIST_PLAYERS.format(list));
+        String list = MAUtils.toString(arena.getNonreadyPlayers());
+        if (list.equals("")) {
+            Messenger.tell(sender, Msg.MISC_NONE);
+        } else {
+            Messenger.tell(sender, Msg.MISC_LIST_PLAYERS.format(list));
+        }
         return true;
     }
 }

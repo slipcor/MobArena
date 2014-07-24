@@ -132,7 +132,7 @@ public class ArenaRegion
             if (p1 == null) list.add("p1");
             if (p2 == null) list.add("p2");
             if (!list.isEmpty()) {
-                Messenger.tell(s, "Missing region points: " + MAUtils.listToString(list, plugin));
+                Messenger.tell(s, "Missing region points: " + MAUtils.toString(list));
                 list.clear();
             }
         }
@@ -143,7 +143,7 @@ public class ArenaRegion
             if (lobbyWarp == null) list.add("lobby");
             if (specWarp  == null) list.add("spectator");
             if (!list.isEmpty()) {
-                Messenger.tell(s, "Missing warps: " + MAUtils.listToString(list, plugin));
+                Messenger.tell(s, "Missing warps: " + MAUtils.toString(list));
                 list.clear();
             }
         }

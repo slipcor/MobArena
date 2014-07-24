@@ -34,7 +34,7 @@ public class PlayerListCommand implements Command
                 return false;
             }
             
-            list = MAUtils.listToString(arena.getPlayersInArena(), am.getPlugin());
+            list = MAUtils.toString(arena.getPlayersInArena());
         } else {
             StringBuilder buffy = new StringBuilder();
             List<Player> players = new LinkedList<Player>();
@@ -43,11 +43,14 @@ public class PlayerListCommand implements Command
                 players.addAll(arena.getPlayersInArena());
             }
             
-            buffy.append(MAUtils.listToString(players, am.getPlugin()));
+            buffy.append(MAUtils.toString(players));
             list = buffy.toString();
         }
-        
-        Messenger.tell(sender, Msg.MISC_LIST_PLAYERS.format(list));
+        if (list.equals("")) {
+            Messenger.tell(sender, Msg.MISC_NONE);
+        } else {
+            Messenger.tell(sender, Msg.MISC_LIST_PLAYERS.format(list));
+        }
         return true;
     }
 }

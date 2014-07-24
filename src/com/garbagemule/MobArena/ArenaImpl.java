@@ -1461,8 +1461,7 @@ public class ArenaImpl implements Arena
                 }
             }
         }
-        
-        Messenger.tell(p, Msg.JOIN_FEE_PAID.format(MAUtils.listToString(entryFee, plugin)));
+        Messenger.tell(p, Msg.JOIN_FEE_PAID.format(MAUtils.toString(entryFee)));
         return true;
     }
     
@@ -1506,7 +1505,7 @@ public class ArenaImpl implements Arena
         else if (settings.getBoolean("require-empty-inv-join", true) && !InventoryManager.hasEmptyInventory(p))
             Messenger.tell(p, Msg.JOIN_EMPTY_INV);
         else if (!canAfford(p))
-            Messenger.tell(p, Msg.JOIN_FEE_REQUIRED, MAUtils.listToString(entryFee, plugin));
+            Messenger.tell(p, Msg.JOIN_FEE_REQUIRED, MAUtils.toString(entryFee));
         else return true;
         
         return false;

@@ -30,8 +30,12 @@ public class ArenaListCommand implements Command
             arenas = am.getArenas();
         }
         
-        String list = MAUtils.listToString(arenas, am.getPlugin());
-        Messenger.tell(sender, Msg.MISC_LIST_ARENAS.format(list));
+        String list = MAUtils.toString(arenas);
+        if (list.equals("")) {
+            Messenger.tell(sender, Msg.MISC_NONE);
+        } else {
+            Messenger.tell(sender, Msg.MISC_LIST_PLAYERS.format(list));
+        }
         return true;
     }
 }
