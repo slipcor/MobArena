@@ -18,7 +18,7 @@ public class Effect implements Grantable {
 
     public Effect(String name, int amplifier, int duration) {
         this.amplifier = amplifier;
-        this.duration = duration;
+        this.duration = (duration > 0) ? duration * 20 : Integer.MAX_VALUE;
 
         for (PotionEffectType type : PotionEffectType.values()) {
             // Apparently null is an actual value, so guard against it
@@ -34,7 +34,7 @@ public class Effect implements Grantable {
 
     @Override
     public boolean grant(Player player) {
-        PotionEffect effect = new PotionEffect(type, duration * 20, amplifier);
+        PotionEffect effect = new PotionEffect(type, duration, amplifier);
         return player.addPotionEffect(effect);
     }
 
@@ -118,7 +118,7 @@ public class Effect implements Grantable {
         int amp = Integer.MIN_VALUE;
         int duration = Integer.MIN_VALUE;
         try {
-            amp = Integer.parseInt(parts[1]);
+            amp = Math.max(0, Integer.parseInt(parts[1]) - 1);
             duration = Integer.parseInt(parts[2]);
         } catch (NumberFormatException e) {
             // We'll throw exceptions in the next lines
