@@ -3,6 +3,7 @@ package com.garbagemule.MobArena;
 import java.util.*;
 import java.util.Map.Entry;
 
+import com.garbagemule.MobArena.grantable.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -15,6 +16,7 @@ public class ArenaClass
     private String configName, lowercaseName;
     private ItemStack helmet, chestplate, leggings, boots;
     private List<ItemStack> items, armor;
+    private List<Effect> effects;
     private Map<String,Boolean> perms;
     private Map<String,Boolean> lobbyperms;
     private boolean unbreakableWeapons, unbreakableArmor;
@@ -33,6 +35,7 @@ public class ArenaClass
         this.armor = new ArrayList<ItemStack>(4);
         this.perms = new HashMap<String,Boolean>();
         this.lobbyperms = new HashMap<String,Boolean>();
+        this.effects = new ArrayList<Effect>();
 
         this.unbreakableWeapons = unbreakableWeapons;
         this.unbreakableArmor = unbreakableArmor;
@@ -245,6 +248,18 @@ public class ArenaClass
                 Messenger.warning("[PERM00] Failed to attach permission '" + perm + "' to player '" + player + " with class " + this.configName
                                 + "'.\nPlease verify that your class permissions are well-formed.");
             }
+        }
+    }
+
+    public void addEffect(Effect effect) {
+        System.out.println("Adding " + effect + " to class " + configName);
+        effects.add(effect);
+    }
+
+    public void grantEffects(Player p) {
+        for (Effect effect : effects) {
+            System.out.println("!");
+            effect.grant(p);
         }
     }
 

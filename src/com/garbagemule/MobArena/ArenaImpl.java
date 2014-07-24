@@ -452,6 +452,7 @@ public class ArenaImpl implements Arena
             if (price > 0D) {
                 plugin.takeMoney(p, price);
             }
+            arenaPlayerMap.get(p).getArenaClass().grantEffects(p);
             
             scoreboard.addPlayer(p);
         }

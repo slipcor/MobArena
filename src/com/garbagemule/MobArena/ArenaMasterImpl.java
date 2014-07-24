@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.garbagemule.MobArena.grantable.Effect;
+import com.garbagemule.MobArena.grantable.Grantable;
+import com.garbagemule.MobArena.grantable.GrantableParser;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -357,6 +360,33 @@ public class ArenaMasterImpl implements ArenaMaster
 
         // Register the permission.
         registerPermission("mobarena.classes." + lowercase, PermissionDefault.TRUE).addParent("mobarena.classes", true);
+
+        // Get effects
+        List<String> effectList = section.getStringList("effects");
+        if (effectList == null) {
+            effectList = new ArrayList<String>();
+        }
+        if (effectList.isEmpty()) {
+            String s = section.getString("effects", null);
+            if (s != null && !s.equals("")) {
+                String[] parts = s.split(",");
+                for (String part : parts) {
+                    effectList.add(part.trim());
+                }
+            }
+        }
+        if (!effectList.isEmpty()) {
+            for (String effect : effectList) {
+                GrantableParser parser = new GrantableParser(effect);
+                try {
+                    arenaClass.addEffect(parser.nextEffect());
+                } catch (IllegalArgumentException e) {
+                    plugin.getLogger().severe(e.getMessage());
+                } catch (Exception e) {
+                    break;
+                }
+            }
+        }
 
         // Check for class chests
         Location cc = parseLocation(section, "classchest", null);
