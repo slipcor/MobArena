@@ -2,6 +2,7 @@ package com.garbagemule.MobArena.framework;
 
 import java.util.*;
 
+import com.garbagemule.MobArena.grantable.Grantable;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -60,9 +61,9 @@ public interface Arena
     
     public List<ItemStack> getEntryFee();
     
-    public Set<Map.Entry<Integer, List<com.garbagemule.MobArena.grantable.Grantable>>> getEveryWaveEntrySet();
+    public Set<Map.Entry<Integer, List<Grantable>>> getEveryWaveEntrySet();
 
-    public List<com.garbagemule.MobArena.grantable.Grantable> getAfterWaveReward(int wave);
+    public List<Grantable> getAfterWaveReward(int wave);
     
     public Set<Player> getPlayersInArena();
     
