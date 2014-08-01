@@ -31,11 +31,13 @@ public class Item implements Grantable {
     private final int amount;
     private final short data;
     private Map<String,Integer> enchantments;
+    private ItemStack stack;
 
     public Item(Material type, int amount, short data) {
         this.type = type;
         this.amount = amount;
         this.data = data;
+        this.stack = null;
     }
 
     @Override
@@ -104,8 +106,13 @@ public class Item implements Grantable {
      * @return this Item as an ItemStack
      */
     public ItemStack toItemStack() {
+        // Use cached stack
+        if (stack != null) {
+            return stack.clone();
+        }
+
         // Create the ItemStack
-        ItemStack stack = new ItemStack(type, amount, data);
+        stack = new ItemStack(type, amount, data);
 
         // Add enchantments, if we have any
         if (enchantments != null) {
@@ -114,7 +121,7 @@ public class Item implements Grantable {
                 stack.addUnsafeEnchantment(ench, entry.getValue());
             }
         }
-        return stack;
+        return stack.clone();
     }
 
     @Override
