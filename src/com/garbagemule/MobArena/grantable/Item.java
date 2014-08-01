@@ -10,7 +10,6 @@ import org.bukkit.material.MaterialData;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -93,13 +92,6 @@ public class Item implements Grantable {
         return false;
     }
 
-    public void addEnchantment(String enchantment, int level) {
-        if (enchantments == null) {
-            enchantments = new HashMap<String,Integer>();
-        }
-        enchantments.put(enchantment, level);
-    }
-
     /**
      * Convert this Item to an ItemStack
      *
@@ -147,6 +139,13 @@ public class Item implements Grantable {
             item.addEnchantment(entry.getKey().getName(), entry.getValue());
         }
         return item;
+    }
+
+    private void addEnchantment(String enchantment, int level) {
+        if (enchantments == null) {
+            enchantments = new HashMap<String,Integer>();
+        }
+        enchantments.put(enchantment, level);
     }
 
     private static short dataOf(ItemStack stack) {
