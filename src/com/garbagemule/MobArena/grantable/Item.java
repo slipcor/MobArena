@@ -27,13 +27,13 @@ import java.util.Map.Entry;
  * internally).
  */
 public class Item implements Grantable {
-    private final int id;
+    private final Material type;
     private final int amount;
     private final short data;
     private Map<String,Integer> enchantments;
 
-    public Item(int id, int amount, short data) {
-        this.id = id;
+    public Item(Material type, int amount, short data) {
+        this.type = type;
         this.amount = amount;
         this.data = data;
     }
@@ -52,7 +52,7 @@ public class Item implements Grantable {
 
         int remaining = amount;
         for (int i = 0; i < contents.length; i++) {
-            if (contents[i] == null || contents[i].getTypeId() != id) {
+            if (contents[i] == null || contents[i].getType() != type) {
                 continue;
             }
 
@@ -80,7 +80,7 @@ public class Item implements Grantable {
 
         int remaining = amount;
         for (ItemStack item : contents) {
-            if (item == null || item.getTypeId() != id) {
+            if (item == null || item.getType() != type) {
                 continue;
             }
             remaining -= item.getAmount();
@@ -105,7 +105,7 @@ public class Item implements Grantable {
      */
     public ItemStack toItemStack() {
         // Create the ItemStack
-        ItemStack stack = new ItemStack(id, amount, data);
+        ItemStack stack = new ItemStack(type, amount, data);
 
         // Add enchantments, if we have any
         if (enchantments != null) {
@@ -119,7 +119,7 @@ public class Item implements Grantable {
 
     @Override
     public String toString() {
-        return Material.getMaterial(id).toString().toLowerCase() + (amount == 1 ? "" : " x" + amount);
+        return type.toString().toLowerCase() + (amount == 1 ? "" : " x" + amount);
     }
 
     /**
@@ -133,7 +133,7 @@ public class Item implements Grantable {
      */
     public static Item fromItemStack(ItemStack stack) {
         // Create the Item from the ItemStack data
-        Item item = new Item(stack.getTypeId(), stack.getAmount(), dataOf(stack));
+        Item item = new Item(stack.getType(), stack.getAmount(), dataOf(stack));
 
         // Add enchantments, if any
         for (Entry<Enchantment,Integer> entry : stack.getEnchantments().entrySet()) {
@@ -207,7 +207,7 @@ public class Item implements Grantable {
         parts = item.split(":");
 
         // Item variables
-        int id = -1;
+        Material type = null;
         int amount = 1;
         short data = 0;
 
@@ -248,16 +248,20 @@ public class Item implements Grantable {
             case 1:
                 if (parts[0].matches("[0-9]+")) {
                     try {
-                        id = Integer.parseInt(parts[0]);
+                        int id = Integer.parseInt(parts[0]);
+                        type = Material.getMaterial(id);
+                        if (type == null) {
+                            // "Fall-through" to catch-block
+                            throw new NumberFormatException();
+                        }
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException("'" + parts[0] + "' is not a valid item ID");
                     }
                 } else {
-                    Material mat = Material.matchMaterial(parts[0]);
-                    if (mat == null) {
+                    type = Material.matchMaterial(parts[0]);
+                    if (type == null) {
                         throw new IllegalArgumentException("'" + parts[0] + "' is not a valid item name");
                     }
-                    id = mat.getId();
                 }
                 break;
             default:
@@ -265,7 +269,7 @@ public class Item implements Grantable {
         }
 
         // Finally, create and return the item
-        return new Item(id, amount, data);
+        return new Item(type, amount, data);
     }
 
     private static Map<String,Integer> enchantsOf(String string) {
