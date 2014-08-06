@@ -34,6 +34,7 @@ public class BossWave extends AbstractWave
     private int abilityInterval;
 
     private Grantable reward;
+    private List<ItemStack> drops;
     
     public BossWave(MACreature monster) {
         this.monster   = monster;
@@ -121,6 +122,14 @@ public class BossWave extends AbstractWave
     public void setReward(Grantable reward) {
         this.reward = reward;
     }
+
+    public List<ItemStack> getDrops() {
+        return drops;
+    }
+
+    public void setDrops(List<ItemStack> drops) {
+        this.drops = drops;
+    }
     
     public void activateAbilities(Arena arena) {
         if (activated) {
@@ -150,6 +159,7 @@ public class BossWave extends AbstractWave
         result.healthMultiplier = this.healthMultiplier;
         result.flatHealth = this.flatHealth;
         result.reward = this.reward;
+        result.drops = this.drops;
         result.bossName = this.bossName;
 
         // From AbstractWave

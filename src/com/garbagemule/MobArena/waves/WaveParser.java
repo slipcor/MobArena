@@ -3,8 +3,8 @@ package com.garbagemule.MobArena.waves;
 import java.util.*;
 
 import com.garbagemule.MobArena.ArenaClass;
-import com.garbagemule.MobArena.grantable.Grantable;
 import com.garbagemule.MobArena.grantable.GrantableParser;
+import com.garbagemule.MobArena.grantable.Item;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -296,6 +296,21 @@ public class WaveParser
             } catch (Exception e) {
                 Messenger.severe("Error parsing reward for boss wave " + name + " for arena " + arena.configName());
             }
+        }
+
+        // Drops!
+        String drp = config.getString("drops");
+        if (drp != null) {
+            GrantableParser parser = new GrantableParser(drp);
+            List<ItemStack> drops = new ArrayList<ItemStack>();
+            while (parser.hasNext()) {
+                try {
+                    drops.add(parser.nextItem().toItemStack());
+                } catch (Exception e) {
+                    Messenger.severe("Error parsing drop for boss wave " + name + " for arena " + arena.configName());
+                }
+            }
+            result.setDrops(drops);
         }
         
         return result;

@@ -4,18 +4,21 @@ import com.garbagemule.MobArena.grantable.Grantable;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 public class MABoss
 {
     private LivingEntity entity;
     private boolean dead;
     private Grantable reward;
+    private List<ItemStack> drops;
     
     /**
      * Create an MABoss from the given entity with the given max health.
      * @param entity an entity
      * @param maxHealth a max health value
      */
-    public MABoss(LivingEntity entity, int maxHealth) {
+    public MABoss(LivingEntity entity, double maxHealth) {
         entity.setMaxHealth(maxHealth);
         entity.setHealth(maxHealth);
         this.entity    = entity;
@@ -71,5 +74,13 @@ public class MABoss
 
     public Grantable getReward() {
         return reward;
+    }
+
+    public void setDrops(List<ItemStack> drops) {
+        this.drops = drops;
+    }
+
+    public List<ItemStack> getDrops() {
+        return drops;
     }
 }
