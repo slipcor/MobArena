@@ -64,6 +64,7 @@ public class SpawnsPets {
                 tameable.setTamed(true);
                 tameable.setOwner(player);
             }
+            arena.setMetaData(pet);
             arena.getMonsterManager().addPet(player, pet);
         }
 

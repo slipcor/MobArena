@@ -54,6 +54,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.bukkit.potion.PotionEffect;
@@ -998,6 +999,7 @@ public class ArenaImpl implements Arena
                     ((Horse) mount).getInventory().setArmor(new ItemStack(barding));
                 }
             }
+            setMetaData(mount);
 
             // Add to monster manager
             monsterManager.addMount(mount);
@@ -1501,6 +1503,10 @@ public class ArenaImpl implements Arena
     @Override
     public AutoStartTimer getAutoStartTimer() {
         return autoStartTimer;
+    }
+
+    public void setMetaData(Entity entity) {
+        entity.setMetadata("MobArena", new FixedMetadataValue(plugin, true));
     }
 
     /*@Override
