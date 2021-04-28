@@ -766,6 +766,8 @@ public class ArenaImpl implements Arena
         }
 
         movingPlayers.remove(p);
+
+        setMetadata(p);
         return true;
     }
 
@@ -940,6 +942,8 @@ public class ArenaImpl implements Arena
 
         messenger.tell(p, Msg.SPEC_PLAYER_SPECTATE);
         movingPlayers.remove(p);
+
+        setMetadata(p);
     }
 
     private void rollback(Player p) {
@@ -999,7 +1003,7 @@ public class ArenaImpl implements Arena
                     ((Horse) mount).getInventory().setArmor(new ItemStack(barding));
                 }
             }
-            setMetaData(mount);
+            setMetadata(mount);
 
             // Add to monster manager
             monsterManager.addMount(mount);
@@ -1131,6 +1135,8 @@ public class ArenaImpl implements Arena
         arenaPlayerMap.remove(p);
 
         scoreboard.removePlayer(p);
+
+        removeMetadata(p);
     }
 
     @Override
@@ -1505,7 +1511,15 @@ public class ArenaImpl implements Arena
         return autoStartTimer;
     }
 
-    public void setMetaData(Entity entity) {
+    @Override
+    public void removeMetadata(Entity entity)
+    {
+        entity.removeMetadata("MobArena", plugin);
+    }
+
+    @Override
+    public void setMetadata(Entity entity)
+    {
         entity.setMetadata("MobArena", new FixedMetadataValue(plugin, true));
     }
 

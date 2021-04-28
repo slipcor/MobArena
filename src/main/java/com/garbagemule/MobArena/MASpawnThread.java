@@ -225,7 +225,7 @@ public class MASpawnThread implements Runnable
                 // Add potion effects
                 e.addPotionEffects(w.getEffects());
 
-                arena.setMetaData(e);
+                arena.setMetadata(e);
 
                 // Add it to the arena.
                 monsterManager.addMonster(e);

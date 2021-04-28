@@ -196,7 +196,7 @@ public class MACreature
             Creature c = (Creature) e;
             c.setTarget(WaveUtils.getClosestPlayer(arena, e));
         }
-        arena.setMetaData(e);
+        arena.setMetadata(e);
 
         return e;
     }

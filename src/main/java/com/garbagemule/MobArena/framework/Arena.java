@@ -257,5 +257,7 @@ public interface Arena
 
     AutoStartTimer getAutoStartTimer();
 
-    void setMetaData(Entity tnt);
+    void removeMetadata(Entity entity);
+
+    void setMetadata(Entity entity);
 }
